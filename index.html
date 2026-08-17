@@ -1,0 +1,1546 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Ｓｔｙｌｉｓｔ成績ノート</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#8B3A3A">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="成績ノート">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800;9..144,900&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@400;500;600;700;800;900&family=Noto+Serif+JP:wght@400;500;600;700;800;900&family=M+PLUS+Rounded+1c:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --bg:#F6F1EA;
+    --surface:#FFFFFF;
+    --surface-muted:#EFE6D8;
+    --ink:#2B2321;
+    --ink-soft:#7A6D64;
+    --accent:#8B3A3A;
+    --accent-soft:#EFD9D4;
+    --gold:#B7935A;
+    --good:#4C6B52;
+    --good-soft:#DEE8DD;
+    --warn:#9C6B2E;
+    --line:#E1D4C1;
+    --radius:16px;
+    --fs-scale:1;
+    --fw-delta:0;
+    --font-display:'Fraunces', serif;
+    --font-body:'Manrope', sans-serif;
+    --font-mono:'JetBrains Mono', monospace;
+  }
+  html[data-fontsize="s"]{ --fs-scale:0.9; }
+  html[data-fontsize="m"]{ --fs-scale:1; }
+  html[data-fontsize="l"]{ --fs-scale:1.15; }
+  html[data-fontsize="xl"]{ --fs-scale:1.3; }
+  html[data-fontweight="regular"]{ --fw-delta:0; }
+  html[data-fontweight="bold"]{ --fw-delta:100; }
+  html[data-fontweight="bolder"]{ --fw-delta:200; }
+  html[data-fontfamily="standard"]{
+    --font-display:'Fraunces', serif;
+    --font-body:'Manrope', sans-serif;
+    --font-mono:'JetBrains Mono', monospace;
+  }
+  html[data-fontfamily="gothic"]{
+    --font-display:'Noto Sans JP', sans-serif;
+    --font-body:'Noto Sans JP', sans-serif;
+    --font-mono:'Noto Sans JP', sans-serif;
+  }
+  html[data-fontfamily="rounded"]{
+    --font-display:'M PLUS Rounded 1c', sans-serif;
+    --font-body:'M PLUS Rounded 1c', sans-serif;
+    --font-mono:'M PLUS Rounded 1c', sans-serif;
+  }
+  html[data-fontfamily="mincho"]{
+    --font-display:'Noto Serif JP', serif;
+    --font-body:'Noto Serif JP', serif;
+    --font-mono:'Noto Serif JP', serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--font-body);
+    font-weight:calc(400 + var(--fw-delta));
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+    padding-bottom:78px;
+  }
+  .mono{font-family:var(--font-mono);}
+  .display{font-family:var(--font-display);}
+
+  header.top{
+    position:sticky; top:0; z-index:20;
+    background:var(--bg);
+    padding:18px 18px 10px;
+    border-bottom:1px solid var(--line);
+  }
+  .brand{
+    display:flex; align-items:baseline; gap:10px;
+  }
+  .brand .stamp{
+    width:34px; height:34px; border-radius:50%;
+    border:1.5px solid var(--accent);
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--font-display); font-weight:calc(700 + var(--fw-delta)); color:var(--accent);
+    font-size:calc(14px * var(--fs-scale)); flex-shrink:0;
+  }
+  .brand h1{
+    font-family:var(--font-display); font-weight:calc(600 + var(--fw-delta)); font-size:calc(19px * var(--fs-scale)); margin:0;
+    letter-spacing:.01em;
+  }
+  .brand .sub{font-size:calc(11px * var(--fs-scale)); color:var(--ink-soft); margin-top:1px;}
+
+  .year-switch{
+    display:flex; align-items:center; justify-content:center; gap:18px;
+    margin-top:14px;
+  }
+  .year-switch button{
+    width:34px;height:34px;border-radius:50%;border:1px solid var(--line);
+    background:var(--surface); color:var(--ink); font-size:calc(16px * var(--fs-scale)); cursor:pointer;
+  }
+  .year-switch .yr{
+    font-family:var(--font-display); font-size:calc(22px * var(--fs-scale)); font-weight:calc(600 + var(--fw-delta));
+    letter-spacing:.02em;
+  }
+
+  main{padding:16px 16px 24px;}
+
+  /* ---- Month grid ---- */
+  .grid{
+    display:grid; grid-template-columns:repeat(3,1fr); gap:10px;
+    margin-top:6px;
+  }
+  .card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:12px 8px 10px;
+    text-align:center;
+    position:relative;
+    cursor:pointer;
+    transition:transform .12s ease;
+  }
+  .card:active{transform:scale(.96);}
+  .card.filled{border-color:var(--accent-soft); background:linear-gradient(180deg,#FFFFFF, #FFFBF8);}
+  .card .stamp{
+    width:calc(40px * var(--fs-scale));height:calc(40px * var(--fs-scale));border-radius:50%;
+    margin:0 auto 6px;
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-display);font-weight:calc(700 + var(--fw-delta));font-size:calc(15px * var(--fs-scale));
+    border:1.5px dashed var(--line); color:var(--ink-soft);
+    white-space:nowrap;
+  }
+  .card.filled .stamp{
+    border:1.5px solid var(--accent); color:var(--accent); background:var(--accent-soft);
+  }
+  .card .val{font-size:calc(10.5px * var(--fs-scale)); color:var(--ink-soft); font-family:var(--font-mono);}
+  .card.filled .val{color:var(--ink);}
+  .card .dot{
+    position:absolute; top:8px; right:10px; width:6px;height:6px;border-radius:50%;
+    background:var(--line);
+  }
+  .card.filled .dot{background:var(--good);}
+
+  /* ---- Section titles ---- */
+  .section-title{
+    font-family:var(--font-display); color:var(--ink-soft);
+    margin:22px 0 10px; letter-spacing:.04em; text-transform:uppercase; font-size:calc(11px * var(--fs-scale));
+    display:flex; align-items:center; gap:8px;
+  }
+  .section-title::after{content:"";flex:1;height:1px;background:var(--line);}
+
+  /* ---- Tab bar ---- */
+  nav.tabbar{
+    position:fixed; bottom:0; left:0; right:0; z-index:30;
+    background:var(--surface); border-top:1px solid var(--line);
+    display:flex; padding:8px 6px calc(8px + env(safe-area-inset-bottom));
+  }
+  nav.tabbar button{
+    flex:1; background:none; border:none; padding:8px 0 4px;
+    display:flex; flex-direction:column; align-items:center; gap:4px;
+    color:var(--ink-soft); font-family:var(--font-body); font-size:calc(11px * var(--fs-scale)); cursor:pointer;
+  }
+  nav.tabbar button .ic{font-size:calc(18px * var(--fs-scale));}
+  nav.tabbar button.active{color:var(--accent); font-weight:calc(700 + var(--fw-delta));}
+
+  /* ---- Modal / entry sheet ---- */
+  .sheet-overlay{
+    position:fixed; inset:0; background:rgba(43,35,33,.42);
+    z-index:50; display:none;
+  }
+  .sheet-overlay.open{display:block;}
+  .sheet{
+    position:fixed; left:0; right:0; bottom:0; z-index:51;
+    background:var(--bg);
+    border-radius:22px 22px 0 0;
+    max-height:92vh; overflow-y:auto;
+    transform:translateY(100%);
+    transition:transform .28s cubic-bezier(.2,.8,.2,1);
+    padding:14px 18px calc(90px + env(safe-area-inset-bottom));
+  }
+  .sheet.open{transform:translateY(0);}
+  .sheet-handle{width:38px;height:4px;background:var(--line);border-radius:4px;margin:4px auto 14px;}
+  .sheet-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
+  .sheet-header .stamp{
+    width:46px;height:46px;border-radius:50%;border:1.5px solid var(--accent);
+    color:var(--accent); display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-display);font-weight:calc(700 + var(--fw-delta));font-size:calc(16px * var(--fs-scale));background:var(--accent-soft);
+  }
+  .sheet-title{font-family:var(--font-display);font-size:calc(20px * var(--fs-scale));font-weight:calc(600 + var(--fw-delta));}
+  .sheet-close{background:none;border:none;font-size:calc(22px * var(--fs-scale));color:var(--ink-soft);cursor:pointer;padding:6px;}
+
+  .field-group{
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    padding:4px 14px; margin-top:14px;
+  }
+  .field-group .fg-label{
+    font-size:calc(10.5px * var(--fs-scale)); color:var(--ink-soft); letter-spacing:.06em; text-transform:uppercase;
+    padding-top:10px;
+  }
+  .field-row{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:11px 0; border-bottom:1px solid var(--line);
+  }
+  .field-row:last-child{border-bottom:none;}
+  .field-group > div:last-child{border-bottom:none;}
+  .field-row label{font-size:calc(13.5px * var(--fs-scale)); flex:1; line-height:1.3;}
+  .field-row .hint{display:block; font-size:calc(10.5px * var(--fs-scale)); color:var(--ink-soft); margin-top:1px;}
+  .field-row input{
+    width:108px; text-align:right; border:none; background:var(--surface-muted);
+    border-radius:9px; padding:8px 10px; font-size:calc(15px * var(--fs-scale)); font-family:var(--font-mono);
+    color:var(--ink);
+  }
+  .field-row input:focus{outline:2px solid var(--accent-soft);}
+  .field-row .unit{font-size:calc(11.5px * var(--fs-scale)); color:var(--ink-soft); width:22px;}
+
+  .computed-row{
+    display:flex; justify-content:space-between; align-items:baseline;
+    padding:10px 4px; font-size:calc(13px * var(--fs-scale)); color:var(--good);
+  }
+  .computed-row .v{font-family:var(--font-mono); font-weight:calc(700 + var(--fw-delta)); font-size:calc(15px * var(--fs-scale));}
+
+  .computed-inline{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:9px 0; border-bottom:1px solid var(--line);
+    background:var(--good-soft); margin:0 -14px; padding-left:14px; padding-right:14px;
+  }
+  .computed-inline label{font-size:calc(12.5px * var(--fs-scale)); color:var(--good); font-weight:calc(700 + var(--fw-delta)); flex:1;}
+  .computed-inline label .tag{font-size:calc(9.5px * var(--fs-scale)); font-weight:calc(700 + var(--fw-delta)); color:var(--good); opacity:.75; margin-left:4px;}
+  .computed-inline .v{font-family:var(--font-mono); font-weight:calc(700 + var(--fw-delta)); font-size:calc(15px * var(--fs-scale)); color:var(--good);}
+
+  .sheet-actions{
+    display:flex; gap:10px; margin-top:20px;
+  }
+  .btn{
+    flex:1; border:none; border-radius:12px; padding:14px 0; font-size:calc(14.5px * var(--fs-scale));
+    font-family:var(--font-body); font-weight:calc(700 + var(--fw-delta)); cursor:pointer;
+  }
+  .btn.primary{background:var(--accent); color:#fff;}
+  .btn.ghost{background:var(--surface-muted); color:var(--ink);}
+  .btn.danger-text{background:none; color:var(--warn); font-weight:calc(600 + var(--fw-delta)); text-decoration:underline; flex:none; margin-top:14px; width:100%; text-align:center; padding:8px 0;}
+
+  /* ---- Summary tab ---- */
+  .table-wrap{overflow-x:auto; border:1px solid var(--line); border-radius:var(--radius); background:var(--surface);}
+  table{border-collapse:collapse; width:100%; font-family:var(--font-mono); font-size:calc(12px * var(--fs-scale)); white-space:nowrap;}
+  th,td{padding:9px 12px; text-align:right; border-bottom:1px solid var(--line);}
+  th:first-child,td:first-child{text-align:left; position:sticky; left:0; background:var(--surface); font-family:var(--font-body); font-weight:calc(700 + var(--fw-delta));}
+  thead th{font-family:var(--font-body); font-size:calc(10.5px * var(--fs-scale)); color:var(--ink-soft); text-transform:uppercase; letter-spacing:.03em; font-weight:calc(700 + var(--fw-delta));}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr.clickable-row{cursor:pointer;}
+  tbody tr.clickable-row:active{background:var(--surface-muted);}
+  tbody tr.clickable-row td:first-child{color:var(--accent);}
+  tfoot td{font-weight:calc(700 + var(--fw-delta)); border-top:1.5px solid var(--ink); background:var(--surface-muted);}
+
+  .export-row{display:flex; flex-direction:column; gap:10px; margin-top:14px;}
+  .btn.outline{background:var(--surface); border:1.3px solid var(--accent); color:var(--accent);}
+  .file-btn{position:relative; overflow:hidden;}
+  .file-btn input[type=file]{position:absolute; inset:0; opacity:0; cursor:pointer;}
+
+  .empty-note{
+    color:var(--ink-soft); font-size:calc(12.5px * var(--fs-scale)); text-align:center; padding:26px 10px; line-height:1.6;
+  }
+  .toast{
+    position:fixed; bottom:92px; left:50%; transform:translateX(-50%);
+    background:var(--ink); color:#fff; padding:10px 18px; border-radius:30px;
+    font-size:calc(13px * var(--fs-scale)); z-index:60; opacity:0; transition:opacity .25s ease; pointer-events:none;
+  }
+  .toast.show{opacity:1;}  .no-print{}
+  .print-heading{display:none;}
+
+  @media print{
+    .no-print{display:none !important;}
+    body{background:#fff; padding-bottom:0;}
+    main{padding:0;}
+    .print-heading{
+      display:block; margin:0 0 10px;
+      font-family:'Fraunces',serif; font-size:15px; font-weight:700; color:#000;
+    }
+    .print-heading .range{
+      display:block; font-family:'Manrope',sans-serif; font-weight:500; font-size:10px; color:#444; margin-top:2px;
+    }
+    .table-wrap{border:none; overflow:visible;}
+    table{font-size:8.5px; width:100%;}
+    th,td{padding:3px 5px; border:1px solid #999; color:#000;}
+    th:first-child, td:first-child{position:static; background:#fff;}
+    thead th{color:#000; background:#eee;}
+    tfoot td{background:#f0f0f0; color:#000;}
+  }
+</style>
+<style id="pageSizeStyle">
+  @page{ size: A4; margin: 10mm; }
+</style>
+</head>
+<body>
+
+<header class="top no-print">
+  <div class="brand">
+    <div>
+      <h1>Ｓｔｙｌｉｓｔ成績ノート</h1>
+      <div class="sub">2月始まり〜翌1月終わりの年度制</div>
+    </div>
+  </div>
+  <div class="year-switch">
+    <button id="yrPrev">‹</button>
+    <div style="text-align:center;">
+      <div class="yr mono" id="yrLabel">2025</div>
+      <div class="sub" id="yrRange" style="margin-top:2px;">2月〜翌1月</div>
+    </div>
+    <button id="yrNext">›</button>
+  </div>
+</header>
+
+<main id="main"></main>
+
+<div class="toast" id="toast"></div>
+
+<div class="sheet-overlay" id="overlay"></div>
+<div class="sheet" id="sheet"></div>
+
+<nav class="tabbar no-print">
+  <button class="tab-btn active" data-tab="grid"><span class="ic">🗓</span>月次入力</button>
+  <button class="tab-btn" data-tab="summary"><span class="ic">📊</span>年間集計</button>
+  <button class="tab-btn" data-tab="chart"><span class="ic">📈</span>グラフ</button>
+  <button class="tab-btn" data-tab="export"><span class="ic">⇄</span>読込・書出</button>
+  <button class="tab-btn" data-tab="settings"><span class="ic">⚙️</span>設定</button>
+</nav>
+
+<script>
+/* ============================================================
+   データ定義
+   ============================================================ */
+const FIELDS = [
+  {key:'fanSales',      label:'Fan売上',            unit:'円', group:'売上'},
+  {key:'totalSales',    label:'総技売上（合計）',     unit:'円', group:'売上', hint:'Free売上は自動計算されます'},
+  {key:'retail',        label:'店販売上',            unit:'円', group:'売上'},
+  {key:'fanCustomers',  label:'Fan客数',            unit:'人', group:'客数'},
+  {key:'newCustomers',  label:'新規客数',            unit:'人', group:'客数'},
+  {key:'referrals',     label:'紹介客数',            unit:'人', group:'客数'},
+  {key:'totalCustomers',label:'総客数',              unit:'人', group:'客数'},
+  {key:'repeatRate',    label:'リピート率',          unit:'%', group:'比率', hint:'目標なし・現状把握用'},
+  {key:'newRepeatRate', label:'新規リピート率',       unit:'%', group:'比率'},
+  {key:'pRatio',        label:'P比率',              unit:'%', group:'比率', hint:'目標 15%以上'},
+  {key:'dRatio',        label:'D比率',              unit:'%', group:'比率', hint:'目標 30%以上'},
+  {key:'trRatio',       label:'Tr.比率',            unit:'%', group:'比率', hint:'目標 30%以上'},
+  {key:'lossCount',     label:'失客数',              unit:'人', group:'比率'},
+  {key:'lossRate',      label:'失客率',              unit:'%', group:'比率', hint:'目標 10%以下'},
+  {key:'workPoints',    label:'作業ポイント',         unit:'P', group:'その他'},
+];
+const GROUP_ORDER = ['売上','客数','比率','その他'];
+const MONTHS = [2,3,4,5,6,7,8,9,10,11,12,1]; // 2月始まり〜翌1月終わりの年度制
+function calendarYearOf(month, fiscalYear){ return month===1 ? fiscalYear+1 : fiscalYear; }
+function calendarToFiscal(calYear, month){ return month===1 ? calYear-1 : calYear; }
+function periodIndex(fiscalYear, month){ return fiscalYear*12 + MONTHS.indexOf(month); }
+function decodePeriodIndex(idx){
+  const fiscalYear = Math.floor(idx/12);
+  const month = MONTHS[((idx%12)+12)%12];
+  return {fiscalYear, month};
+}
+function toWareki(year){
+  if(year>=2019) return '令和'+(year===2019?'元':year-2018)+'年';
+  if(year>=1989) return '平成'+(year===1989?'元':year-1988)+'年';
+  if(year>=1926) return '昭和'+(year===1926?'元':year-1925)+'年';
+  if(year>=1912) return '大正'+(year===1912?'元':year-1911)+'年';
+  if(year>=1868) return '明治'+(year===1868?'元':year-1867)+'年';
+  return year+'年';
+}
+
+const FONT_SIZE_OPTIONS = [
+  {key:'s',  label:'小',   scale:0.9},
+  {key:'m',  label:'標準', scale:1},
+  {key:'l',  label:'大',   scale:1.15},
+  {key:'xl', label:'特大', scale:1.3},
+];
+function fontScaleOf(key){
+  const opt = FONT_SIZE_OPTIONS.find(o=>o.key===key);
+  return opt ? opt.scale : 1;
+}
+
+const FONT_WEIGHT_OPTIONS = [
+  {key:'regular', label:'標準',  delta:0},
+  {key:'bold',    label:'太め',  delta:100},
+  {key:'bolder',  label:'極太',  delta:200},
+];
+function fontWeightDeltaOf(key){
+  const opt = FONT_WEIGHT_OPTIONS.find(o=>o.key===key);
+  return opt ? opt.delta : 0;
+}
+
+const FONT_FAMILY_OPTIONS = [
+  {key:'standard', label:'標準(デザイン)', display:"'Fraunces', serif",        body:"'Manrope', sans-serif",        mono:"'JetBrains Mono', monospace"},
+  {key:'gothic',   label:'ゴシック',       display:"'Noto Sans JP', sans-serif", body:"'Noto Sans JP', sans-serif",   mono:"'Noto Sans JP', sans-serif"},
+  {key:'rounded',  label:'丸ゴシック',     display:"'M PLUS Rounded 1c', sans-serif", body:"'M PLUS Rounded 1c', sans-serif", mono:"'M PLUS Rounded 1c', sans-serif"},
+  {key:'mincho',   label:'明朝',           display:"'Noto Serif JP', serif",    body:"'Noto Serif JP', serif",       mono:"'Noto Serif JP', serif"},
+];
+function fontFamilyOf(key){
+  return FONT_FAMILY_OPTIONS.find(o=>o.key===key) || FONT_FAMILY_OPTIONS[0];
+}
+
+let state = {
+  year: 2025,   // 起動時にinit()で「最後に月次入力へ登録した年度」に上書きされる（未登録なら現在の年度）
+  tab: 'grid',
+  yearData: {},      // { "1": {fields...}, "2": {...} }
+  editingMonth: null,
+  printSize: 'A4',
+  chartMode: 'year',           // 'year' | 'range'
+  rangeFrom: null,              // {year, month} 暦年月（月選択後に初期化）
+  rangeTo: null,
+  fontSize: 'm',                 // 8インチタブレット等での文字サイズ設定 's'|'m'|'l'|'xl'
+  fontWeight: 'regular',         // 文字の太さ 'regular'|'bold'|'bolder'
+  fontFamily: 'standard',        // 字体 'standard'|'gothic'|'rounded'|'mincho'
+};
+
+/* ============================================================
+   ストレージ
+   ============================================================ */
+const LS_PREFIX = 'stylistNote:';
+function hasNativeStorage(){
+  return (typeof window !== 'undefined') && window.storage && typeof window.storage.get === 'function';
+}
+async function storageGet(key, shared){
+  if(hasNativeStorage()){
+    try{ return await window.storage.get(key, shared); }
+    catch(e){ return null; }
+  }
+  try{
+    const raw = localStorage.getItem(LS_PREFIX+key);
+    return raw!==null ? {key, value:raw, shared:!!shared} : null;
+  }catch(e){ return null; }
+}
+async function storageSet(key, value, shared){
+  if(hasNativeStorage()){
+    try{ return await window.storage.set(key, value, shared); }
+    catch(e){ return null; }
+  }
+  try{
+    localStorage.setItem(LS_PREFIX+key, value);
+    return {key, value, shared:!!shared};
+  }catch(e){ return null; }
+}
+async function storageList(prefix, shared){
+  if(hasNativeStorage()){
+    try{ return await window.storage.list(prefix, shared); }
+    catch(e){ return null; }
+  }
+  try{
+    const keys=[];
+    for(let i=0;i<localStorage.length;i++){
+      const k = localStorage.key(i);
+      if(k && k.indexOf(LS_PREFIX)===0){
+        const bare = k.slice(LS_PREFIX.length);
+        if(!prefix || bare.indexOf(prefix)===0) keys.push(bare);
+      }
+    }
+    return {keys, prefix, shared:!!shared};
+  }catch(e){ return null; }
+}
+
+async function loadYear(year){
+  try{
+    const res = await storageGet('year:'+year, false);
+    return res && res.value ? JSON.parse(res.value) : {};
+  }catch(e){
+    return {};
+  }
+}
+async function saveYear(year, data){
+  try{
+    const res = await storageSet('year:'+year, JSON.stringify(data), false);
+    if(typeof yearCache !== 'undefined') delete yearCache[year];
+    return !!res;
+  }catch(e){
+    console.error('storage error', e);
+    return false;
+  }
+}
+
+/* ---- 最後に月次入力へ登録した年度（次回起動時に自動で開く用） ---- */
+async function loadLastYear(){
+  try{
+    const res = await storageGet('settings:lastYear', false);
+    const n = res && res.value ? parseInt(res.value, 10) : NaN;
+    return isNaN(n) ? null : n;
+  }catch(e){
+    return null;
+  }
+}
+async function saveLastYear(year){
+  try{
+    const res = await storageSet('settings:lastYear', String(year), false);
+    return !!res;
+  }catch(e){
+    console.error('storage error', e);
+    return false;
+  }
+}
+function currentFiscalYear(){
+  const now = new Date();
+  return calendarToFiscal(now.getFullYear(), now.getMonth()+1);
+}
+
+/* ---- 文字サイズ設定（この端末での見た目設定・全年度共通） ---- */
+async function loadFontSize(){
+  try{
+    const res = await storageGet('settings:fontSize', false);
+    const val = res && res.value ? res.value : 'm';
+    return FONT_SIZE_OPTIONS.some(o=>o.key===val) ? val : 'm';
+  }catch(e){
+    return 'm';
+  }
+}
+async function saveFontSize(key){
+  try{
+    const res = await storageSet('settings:fontSize', key, false);
+    return !!res;
+  }catch(e){
+    console.error('storage error', e);
+    return false;
+  }
+}
+function applyFontSize(key){
+  document.documentElement.setAttribute('data-fontsize', key);
+}
+
+/* ---- 文字の太さ設定 ---- */
+async function loadFontWeight(){
+  try{
+    const res = await storageGet('settings:fontWeight', false);
+    const val = res && res.value ? res.value : 'regular';
+    return FONT_WEIGHT_OPTIONS.some(o=>o.key===val) ? val : 'regular';
+  }catch(e){
+    return 'regular';
+  }
+}
+async function saveFontWeight(key){
+  try{
+    const res = await storageSet('settings:fontWeight', key, false);
+    return !!res;
+  }catch(e){
+    console.error('storage error', e);
+    return false;
+  }
+}
+function applyFontWeight(key){
+  document.documentElement.setAttribute('data-fontweight', key);
+}
+
+/* ---- 字体設定 ---- */
+async function loadFontFamily(){
+  try{
+    const res = await storageGet('settings:fontFamily', false);
+    const val = res && res.value ? res.value : 'standard';
+    return FONT_FAMILY_OPTIONS.some(o=>o.key===val) ? val : 'standard';
+  }catch(e){
+    return 'standard';
+  }
+}
+async function saveFontFamily(key){
+  try{
+    const res = await storageSet('settings:fontFamily', key, false);
+    return !!res;
+  }catch(e){
+    console.error('storage error', e);
+    return false;
+  }
+}
+function applyFontFamily(key){
+  document.documentElement.setAttribute('data-fontfamily', key);
+}
+
+/* ============================================================
+   ユーティリティ
+   ============================================================ */
+function yen(n){ if(n===undefined||n===null||n==='') return '—'; return '¥'+Math.round(n).toLocaleString(); }
+function pct(n){ if(n===undefined||n===null||n==='') return '—'; return n+'%'; }
+function num(n){ if(n===undefined||n===null||n==='') return '—'; return Math.round(n).toLocaleString(); }
+function computeDerived(rec){
+  const total = parseFloat(rec.totalSales);
+  const fan = parseFloat(rec.fanSales);
+  const cust = parseFloat(rec.totalCustomers);
+  let free = (!isNaN(total) && !isNaN(fan)) ? (total - fan) : null;
+  let unit = (!isNaN(total) && !isNaN(cust) && cust>0) ? (total/cust) : null;
+  if(free!==null && free<=0) free = 0;   // 0以下は切り捨て
+  if(unit!==null && unit<=0) unit = 0;   // 0以下は切り捨て
+  return {freeSales:free, unitPrice:unit};
+}
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(()=>t.classList.remove('show'), 1800);
+}
+
+/* ============================================================
+   レンダリング: 月グリッド
+   ============================================================ */
+function renderGrid(){
+  const wrap = document.createElement('div');
+  const title = document.createElement('div');
+  title.className='section-title';
+  title.textContent = state.year+'年度（'+toWareki(state.year)+'度） 月別記録';
+  wrap.appendChild(title);
+
+  const grid = document.createElement('div');
+  grid.className='grid';
+  MONTHS.forEach(m=>{
+    const rec = state.yearData[m];
+    const card = document.createElement('div');
+    card.className = 'card'+(rec?' filled':'');
+    card.innerHTML = `
+      <div class="dot"></div>
+      <div class="stamp display">${m}月</div>
+      <div class="val">${rec ? yen(rec.fanSales) : '未入力'}</div>
+      ${m===1 ? '<div class="val" style="margin-top:2px;">翌年</div>' : ''}
+    `;
+    card.onclick = ()=>openSheet(m);
+    grid.appendChild(card);
+  });
+  wrap.appendChild(grid);
+  return wrap;
+}
+
+/* ============================================================
+   レンダリング: 年間集計
+   ============================================================ */
+function renderSummary(){
+  const wrap = document.createElement('div');
+  const filled = MONTHS.filter(m=>state.yearData[m]);
+  if(filled.length===0){
+    wrap.innerHTML = `<div class="section-title">${state.year}年度（${toWareki(state.year)}度） 集計</div>
+      <div class="empty-note">まだ記録がありません。<br>「月次入力」タブから月をタップして入力してください。</div>`;
+    return wrap;
+  }
+
+  const title = document.createElement('div');
+  title.className='section-title';
+  title.textContent = state.year+'年度（'+toWareki(state.year)+'度） 集計';
+  wrap.appendChild(title);
+
+  const hint = document.createElement('p');
+  hint.className = 'no-print';
+  hint.style.cssText = 'font-size:calc(11.5px * var(--fs-scale));color:var(--ink-soft);margin:-4px 0 10px;';
+  hint.textContent = '行をタップするとその月の入力を編集できます。';
+  wrap.appendChild(hint);
+
+  const tableWrap = document.createElement('div');
+  tableWrap.className='table-wrap';
+  // 入力フォームと同じ並び順（Fan売上→Free売上(自動)→総技売上→店販→客単価(自動)→…）で全項目を表示
+  const cols = [
+    {k:'fanSales',       h:'Fan売上',    type:'yen', agg:'sum'},
+    {k:'freeSales',      h:'Free売上',   type:'yen', agg:'sum', derived:true},
+    {k:'totalSales',     h:'総技売',     type:'yen', agg:'sum'},
+    {k:'retail',         h:'店販',       type:'yen', agg:'sum'},
+    {k:'unitPrice',      h:'客単価',     type:'yen', agg:'unit', derived:true},
+    {k:'fanCustomers',   h:'Fan客数',    type:'num', agg:'sum'},
+    {k:'newCustomers',   h:'新規',       type:'num', agg:'sum'},
+    {k:'referrals',      h:'紹介',       type:'num', agg:'sum'},
+    {k:'totalCustomers', h:'総客',       type:'num', agg:'sum'},
+    {k:'repeatRate',     h:'リピ率',     type:'pct', agg:'avg'},
+    {k:'newRepeatRate',  h:'新規R率',    type:'pct', agg:'avg'},
+    {k:'pRatio',         h:'P比率',      type:'pct', agg:'avg'},
+    {k:'dRatio',         h:'D比率',      type:'pct', agg:'avg'},
+    {k:'trRatio',        h:'Tr比率',     type:'pct', agg:'avg'},
+    {k:'lossCount',      h:'失客数',     type:'num', agg:'sum'},
+    {k:'lossRate',       h:'失客率',     type:'pct', agg:'avg'},
+    {k:'workPoints',     h:'作業P',      type:'num', agg:'sum'},
+  ];
+  function fmt(type, v){
+    if(v===undefined||v===null||v==='') return '—';
+    if(type==='yen') return yen(v);
+    if(type==='num') return num(v);
+    if(type==='pct') return pct((Math.round(parseFloat(v)*10)/10));
+    return String(v);
+  }
+
+  let thead = '<tr><th>月</th>'+cols.map(c=>`<th>${c.h}</th>`).join('')+'</tr>';
+  let rows='';
+  let sums = {}; cols.forEach(c=>{ if(c.agg==='sum') sums[c.k]=0; });
+  let rateSums = {}, rateCounts = {};
+  cols.forEach(c=>{ if(c.agg==='avg'){ rateSums[c.k]=0; rateCounts[c.k]=0; } });
+
+  filled.forEach(m=>{
+    const rec = state.yearData[m];
+    const d = computeDerived(rec);
+    const merged = Object.assign({}, rec, d);
+    rows += `<tr class="clickable-row" data-month="${m}"><td>${m}月</td>`+cols.map(c=> `<td>${fmt(c.type, merged[c.k])}</td>`).join('')+'</tr>';
+
+    cols.forEach(c=>{
+      if(c.agg==='sum'){
+        sums[c.k] += parseFloat(merged[c.k])||0;
+      } else if(c.agg==='avg'){
+        const raw = rec[c.k];
+        if(raw!==undefined && raw!==''){ rateSums[c.k]+=parseFloat(raw); rateCounts[c.k]++; }
+      }
+    });
+  });
+
+  let tfoot = '<tr><td>合計/平均</td>'+cols.map(c=>{
+    if(c.agg==='sum') return `<td>${fmt(c.type, sums[c.k])}</td>`;
+    if(c.agg==='avg') return `<td>${rateCounts[c.k] ? fmt(c.type, rateSums[c.k]/rateCounts[c.k]) : '—'}</td>`;
+    if(c.agg==='unit'){
+      let u = sums.totalCustomers>0 ? sums.totalSales/sums.totalCustomers : null;
+      if(u!==null && u<=0) u = 0;
+      return `<td>${u!==null?fmt(c.type,u):'—'}</td>`;
+    }
+    return '<td>—</td>';
+  }).join('')+'</tr>';
+
+  tableWrap.innerHTML = `<table><thead>${thead}</thead><tbody>${rows}</tbody><tfoot>${tfoot}</tfoot></table>`;
+  tableWrap.querySelectorAll('tr.clickable-row').forEach(tr=>{
+    tr.onclick = ()=> openSheet(parseInt(tr.dataset.month, 10));
+  });
+
+  const printHeading = document.createElement('div');
+  printHeading.className = 'print-heading';
+  printHeading.innerHTML = `${state.year}年度（${toWareki(state.year)}度） 成績表<span class="range">${state.year}年2月〜${state.year+1}年1月</span>`;
+  wrap.appendChild(printHeading);
+  wrap.appendChild(tableWrap);
+
+  const printBar = document.createElement('div');
+  printBar.className = 'no-print';
+  printBar.style.marginTop = '16px';
+  printBar.innerHTML = `
+    <div class="section-title">印刷</div>
+    <div class="field-group" style="padding:14px;">
+      <p style="font-size:calc(12px * var(--fs-scale));color:var(--ink-soft);line-height:1.7;margin:2px 0 12px;">
+        この表をそのまま印刷できます。用紙サイズを選んで「印刷する」を押してください。
+      </p>
+      <div style="display:flex; gap:8px; margin-bottom:12px;">
+        <button class="btn ${state.printSize==='A5'?'ghost':'primary'}" id="sizeA4" style="flex:1;">A4</button>
+        <button class="btn ${state.printSize==='A5'?'primary':'ghost'}" id="sizeA5" style="flex:1;">A5</button>
+      </div>
+      <button class="btn outline" id="doPrint" style="width:100%;">🖨 印刷する</button>
+    </div>
+  `;
+  wrap.appendChild(printBar);
+
+  printBar.querySelector('#sizeA4').onclick = ()=>{ state.printSize='A4'; render(); };
+  printBar.querySelector('#sizeA5').onclick = ()=>{ state.printSize='A5'; render(); };
+  printBar.querySelector('#doPrint').onclick = ()=>{
+    setPageSize(state.printSize||'A4');
+    window.print();
+  };
+
+  return wrap;
+}
+function setPageSize(size){
+  const style = document.getElementById('pageSizeStyle');
+  if(style) style.textContent = '@page{ size: '+size+'; margin: 10mm; }';
+}
+
+/* ============================================================
+   レンダリング: グラフ
+   ============================================================ */
+const yearCache = {}; // fiscalYear -> yearData (グラフ用の読み込みキャッシュ)
+
+function ensureRangeDefaults(){
+  if(!state.rangeFrom) state.rangeFrom = {year:state.year, month:2};
+  if(!state.rangeTo) state.rangeTo = {year:state.year+1, month:1};
+}
+
+function renderChart(){
+  ensureRangeDefaults();
+  const wrap = document.createElement('div');
+  const mode = state.chartMode;
+
+  const yearOptions = (sel, val)=>{
+    let html='';
+    for(let y=state.year-5; y<=state.year+2; y++){
+      html += `<option value="${y}" ${y===val?'selected':''}>${y}</option>`;
+    }
+    return html;
+  };
+  const monthOptions = (val)=>{
+    let html='';
+    for(let m=1;m<=12;m++){ html += `<option value="${m}" ${m===val?'selected':''}>${m}</option>`; }
+    return html;
+  };
+
+  wrap.innerHTML = `
+    <div class="section-title">グラフ表示</div>
+    <div class="field-group" style="padding:14px;">
+      <div style="display:flex; gap:8px; margin-bottom:12px;">
+        <button class="btn ${mode==='year'?'primary':'ghost'}" id="modeYear" style="flex:1;">この年度</button>
+        <button class="btn ${mode==='range'?'primary':'ghost'}" id="modeRange" style="flex:1;">期間を指定</button>
+      </div>
+      <div id="rangeControls" style="${mode==='range'?'':'display:none;'}">
+        <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap; font-size:calc(13px * var(--fs-scale)); margin-bottom:10px;">
+          <select id="fromYear" class="mono">${yearOptions(null, state.rangeFrom.year)}</select>年
+          <select id="fromMonth" class="mono">${monthOptions(state.rangeFrom.month)}</select>月
+          <span style="margin:0 4px;">〜</span>
+          <select id="toYear" class="mono">${yearOptions(null, state.rangeTo.year)}</select>年
+          <select id="toMonth" class="mono">${monthOptions(state.rangeTo.month)}</select>月
+        </div>
+        <button class="btn outline" id="applyRange" style="width:100%;">この期間で表示</button>
+      </div>
+      ${mode==='year' ? `<p style="font-size:calc(11.5px * var(--fs-scale));color:var(--ink-soft);margin:0;">${state.year}年度（${toWareki(state.year)}度）の12ヶ月を表示します。</p>` : ''}
+    </div>
+
+    <div id="chartsArea" style="margin-top:18px;">
+      <p class="empty-note">読み込み中…</p>
+    </div>
+  `;
+
+  wrap.querySelector('#modeYear').onclick = ()=>{ state.chartMode='year'; render(); };
+  wrap.querySelector('#modeRange').onclick = ()=>{ state.chartMode='range'; render(); };
+  if(mode==='range'){
+    wrap.querySelector('#applyRange').onclick = ()=>{
+      state.rangeFrom = {
+        year: parseInt(wrap.querySelector('#fromYear').value,10),
+        month: parseInt(wrap.querySelector('#fromMonth').value,10),
+      };
+      state.rangeTo = {
+        year: parseInt(wrap.querySelector('#toYear').value,10),
+        month: parseInt(wrap.querySelector('#toMonth').value,10),
+      };
+      render();
+    };
+  }
+
+  loadAndDrawCharts(wrap);
+  return wrap;
+}
+
+async function loadAndDrawCharts(wrap){
+  // wrap がまだ画面に追加されていない場合があるため、描画前に必ず1フレーム待つ
+  await new Promise(resolve => requestAnimationFrame(()=> requestAnimationFrame(resolve)));
+
+  let idxFrom, idxTo;
+  if(state.chartMode==='year'){
+    idxFrom = periodIndex(state.year, MONTHS[0]);
+    idxTo = periodIndex(state.year, MONTHS[MONTHS.length-1]);
+  }else{
+    const fyFrom = calendarToFiscal(state.rangeFrom.year, state.rangeFrom.month);
+    const fyTo = calendarToFiscal(state.rangeTo.year, state.rangeTo.month);
+    idxFrom = periodIndex(fyFrom, state.rangeFrom.month);
+    idxTo = periodIndex(fyTo, state.rangeTo.month);
+  }
+  if(idxTo < idxFrom){ const t=idxFrom; idxFrom=idxTo; idxTo=t; }
+
+  // 必要な年度をすべて読み込む(キャッシュ利用)
+  const neededYears = new Set();
+  for(let i=idxFrom; i<=idxTo; i++){ neededYears.add(decodePeriodIndex(i).fiscalYear); }
+  for(const fy of neededYears){
+    if(fy===state.year){ yearCache[fy] = state.yearData; }
+    else if(!yearCache[fy]){ yearCache[fy] = await loadYear(fy); }
+  }
+
+  const points = [];
+  for(let i=idxFrom; i<=idxTo; i++){
+    const {fiscalYear, month} = decodePeriodIndex(i);
+    const rec = (yearCache[fiscalYear] || {})[month] || null;
+    const calYear = calendarYearOf(month, fiscalYear);
+    points.push({ label: calYear+'/'+month, rec });
+  }
+
+  const area = wrap.querySelector('#chartsArea');
+  if(!area) return; // タブが切り替わっていたら何もしない
+
+  if(points.every(p=>!p.rec)){
+    area.innerHTML = '<div class="empty-note">この範囲にはまだ記録がありません。</div>';
+    return;
+  }
+
+  area.innerHTML = `
+    <div class="section-title">売上（Fan売上・店販）</div>
+    <div class="field-group" style="padding:12px;"><div style="position:relative;height:220px;"><canvas id="chartSales"></canvas></div></div>
+    <div class="section-title">Fan客数</div>
+    <div class="field-group" style="padding:12px;"><div style="position:relative;height:220px;"><canvas id="chartCustomers"></canvas></div></div>
+    <div class="section-title">リピート率・新規リピート率・失客率</div>
+    <div class="field-group" style="padding:12px;"><div style="position:relative;height:220px;"><canvas id="chartRates"></canvas></div></div>
+  `;
+
+  const labels = points.map(p=>p.label);
+  const pick = (key)=> points.map(p=> p.rec && p.rec[key]!==undefined && p.rec[key]!=='' ? parseFloat(p.rec[key]) : null);
+
+  drawLineChart(area.querySelector('#chartSales'), labels, [
+    {label:'Fan売上', data:pick('fanSales'), color:getCss('--accent')},
+    {label:'店販', data:pick('retail'), color:getCss('--gold')},
+  ]);
+  drawLineChart(area.querySelector('#chartCustomers'), labels, [
+    {label:'Fan客数', data:pick('fanCustomers'), color:getCss('--good')},
+  ]);
+  drawLineChart(area.querySelector('#chartRates'), labels, [
+    {label:'リピート率', data:pick('repeatRate'), color:getCss('--accent')},
+    {label:'新規リピート率', data:pick('newRepeatRate'), color:getCss('--good')},
+    {label:'失客率', data:pick('lossRate'), color:getCss('--warn')},
+  ], true);
+}
+
+function getCss(varName){
+  return getComputedStyle(document.documentElement).getPropertyValue(varName).trim() || '#8B3A3A';
+}
+
+function drawLineChart(canvas, labels, series, isPercent){
+  if(!canvas) return;
+  const fs = fontScaleOf(state.fontSize);
+  const fw = 400 + fontWeightDeltaOf(state.fontWeight);
+  const fam = fontFamilyOf(state.fontFamily);
+  const ffBody = fam.body;
+  const ffMono = fam.mono;
+  const parent = canvas.parentElement;
+  const cssWidth = Math.max(parent.clientWidth, 240);
+  const cssHeight = Math.max(parent.clientHeight, 200);
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = cssWidth*dpr;
+  canvas.height = cssHeight*dpr;
+  canvas.style.width = cssWidth+'px';
+  canvas.style.height = cssHeight+'px';
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,cssWidth,cssHeight);
+
+  const leftSeries = series.filter(s=>s.axis!=='right');
+  const rightSeries = series.filter(s=>s.axis==='right');
+  const leftVals=[]; leftSeries.forEach(s=> s.data.forEach(v=>{ if(v!==null&&v!==undefined&&!isNaN(v)) leftVals.push(v); }));
+  const rightVals=[]; rightSeries.forEach(s=> s.data.forEach(v=>{ if(v!==null&&v!==undefined&&!isNaN(v)) rightVals.push(v); }));
+  const hasRight = rightSeries.length>0;
+
+  if(leftVals.length===0 && rightVals.length===0){
+    ctx.fillStyle = '#7A6D64';
+    ctx.font = fw+' '+(12*fs)+'px '+ffBody;
+    ctx.textAlign = 'center'; ctx.textBaseline='middle';
+    ctx.fillText('データがありません', cssWidth/2, cssHeight/2);
+    return;
+  }
+  let maxLeft = leftVals.length ? Math.max(...leftVals)*1.2 : 1; if(maxLeft<=0) maxLeft=1;
+  let maxRight = rightVals.length ? Math.max(...rightVals)*1.2 : 1; if(maxRight<=0) maxRight=1;
+
+  const pad = {top:30*fs, right: (hasRight?46:12)*fs, bottom:32*fs, left:46*fs};
+  const plotW = cssWidth - pad.left - pad.right;
+  const plotH = cssHeight - pad.top - pad.bottom;
+
+  const n = labels.length;
+  const xStep = n>1 ? plotW/(n-1) : 0;
+  const xAt = i => pad.left + xStep*i;
+  const yAtLeft = v => pad.top + plotH - (v/maxLeft)*plotH;
+  const yAtRight = v => pad.top + plotH - (v/maxRight)*plotH;
+  const yFor = (s,v) => s.axis==='right' ? yAtRight(v) : yAtLeft(v);
+
+  // 横グリッド線 + 縦軸ラベル(左=主軸／右=第2軸)
+  ctx.strokeStyle = '#E1D4C1';
+  ctx.lineWidth = 1;
+  ctx.font = fw+' '+(10*fs)+'px '+ffMono;
+  const gridCount = 4;
+  for(let g=0; g<=gridCount; g++){
+    const y = pad.top + plotH - (g/gridCount)*plotH;
+    ctx.strokeStyle = '#E1D4C1';
+    ctx.beginPath();
+    ctx.moveTo(pad.left, y);
+    ctx.lineTo(pad.left+plotW, y);
+    ctx.stroke();
+
+    const vLeft = maxLeft/gridCount*g;
+    ctx.fillStyle = '#7A6D64';
+    ctx.textAlign='right'; ctx.textBaseline='middle';
+    ctx.fillText(isPercent ? Math.round(vLeft)+'%' : Math.round(vLeft).toLocaleString(), pad.left-6, y);
+
+    if(hasRight){
+      const vRight = maxRight/gridCount*g;
+      ctx.textAlign='left';
+      ctx.fillText(Math.round(vRight).toLocaleString(), pad.left+plotW+6, y);
+    }
+  }
+
+  // 横軸ラベル（多い場合は間引く）
+  ctx.font = fw+' '+(10*fs)+'px '+ffBody;
+  ctx.fillStyle = '#7A6D64';
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  const labelEvery = Math.max(1, Math.ceil(n/7));
+  labels.forEach((lab,i)=>{
+    if(i%labelEvery===0 || i===n-1){
+      ctx.fillText(lab, xAt(i), pad.top+plotH+8);
+    }
+  });
+
+  // 折れ線 + 点
+  series.forEach(s=>{
+    ctx.strokeStyle = s.color; ctx.lineWidth = 2.2;
+    if(s.axis==='right') ctx.setLineDash([5,3]); else ctx.setLineDash([]);
+    ctx.beginPath();
+    let started=false;
+    s.data.forEach((v,i)=>{
+      if(v===null || v===undefined || isNaN(v)){ started=false; return; }
+      const x=xAt(i), y=yFor(s,v);
+      if(!started){ ctx.moveTo(x,y); started=true; } else { ctx.lineTo(x,y); }
+    });
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = s.color;
+    s.data.forEach((v,i)=>{
+      if(v===null||v===undefined||isNaN(v)) return;
+      const x=xAt(i), y=yFor(s,v);
+      ctx.beginPath(); ctx.arc(x,y,3,0,Math.PI*2); ctx.fill();
+    });
+  });
+
+  // 凡例
+  ctx.font = fw+' '+(11*fs)+'px '+ffBody; ctx.textAlign='left'; ctx.textBaseline='middle';
+  let lx = pad.left, ly = 12*fs;
+  series.forEach(s=>{
+    ctx.fillStyle = s.color;
+    ctx.fillRect(lx, ly-4, 10, 10);
+    ctx.fillStyle = '#2B2321';
+    ctx.fillText(s.label, lx+14, ly+1);
+    lx += 14 + ctx.measureText(s.label).width + 18;
+  });
+}
+
+/* ============================================================
+   レンダリング: 読込・書出
+   ============================================================ */
+function renderExport(){
+  const wrap = document.createElement('div');
+  wrap.innerHTML = `
+    <div class="section-title">別の端末でこのアプリを使う</div>
+    <div class="field-group" style="padding:14px;">
+      <p style="font-size:calc(12.5px * var(--fs-scale));color:var(--ink-soft);line-height:1.7;margin:2px 0 12px;">
+        全年度分のデータを1つのファイルにまとめて書き出せます。新しい端末でこのアプリ（同じHTMLファイル）を開き、下の「バックアップを読み込む」で選ぶと、記録がそのまま復元されます。
+      </p>
+      <button class="btn primary" id="exportBackup" style="width:100%; margin-bottom:10px;">バックアップを書き出す</button>
+      <button class="btn outline file-btn" style="width:100%;">
+        バックアップを読み込む
+        <input type="file" id="backupInput" accept=".json" />
+      </button>
+    </div>
+
+    <div class="section-title">元のExcelを読み込む</div>
+    <div class="field-group" style="padding:14px;">
+      <p style="font-size:calc(12.5px * var(--fs-scale));color:var(--ink-soft);line-height:1.7;margin:2px 0 12px;">
+        既存の「個人成績表」形式(.xlsx)を読み込んで、この年度(2月〜翌1月)に一括で反映します。
+      </p>
+      <button class="btn outline file-btn" style="width:100%;">
+        Excelファイルを選ぶ
+        <input type="file" id="fileInput" accept=".xlsx,.xls" />
+      </button>
+    </div>
+
+    <div class="section-title">この年度のデータを書き出す</div>
+    <p style="font-size:calc(11.5px * var(--fs-scale));color:var(--ink-soft);margin:-2px 0 10px;">Excel等の他アプリで開く・確認用です。このアプリへの読み込みには対応していません。</p>
+    <div class="export-row">
+      <button class="btn primary" id="exportXlsx">Excel形式(.xlsx)で書き出す</button>
+      <button class="btn ghost" id="exportCsv">CSV形式で書き出す</button>
+    </div>
+  `;
+  wrap.querySelector('#exportBackup').addEventListener('click', exportBackup);
+  wrap.querySelector('#backupInput').addEventListener('change', handleImportBackup);
+  wrap.querySelector('#fileInput').addEventListener('change', handleImportFile);
+  wrap.querySelector('#exportXlsx').addEventListener('click', exportXlsx);
+  wrap.querySelector('#exportCsv').addEventListener('click', exportCsv);
+  return wrap;
+}
+
+/* ============================================================
+   レンダリング: 設定
+   ============================================================ */
+function renderSettings(){
+  const wrap = document.createElement('div');
+
+  const title = document.createElement('div');
+  title.className = 'section-title';
+  title.textContent = '設定';
+  wrap.appendChild(title);
+
+  const intro = document.createElement('p');
+  intro.className = 'no-print';
+  intro.style.cssText = 'font-size:calc(12.5px * var(--fs-scale));color:var(--ink-soft);line-height:1.7;margin:-4px 0 14px;';
+  intro.textContent = '8インチタブレットなどの画面でも見やすいように、文字のサイズ・太さ・字体をアプリ全体で変更できます。';
+  wrap.appendChild(intro);
+
+  function optionRow(labelText, options, currentKey, dataAttr){
+    const row = document.createElement('div');
+    row.className = 'field-group';
+    row.style.padding = '14px';
+    row.style.marginTop = '0';
+    const buttons = options.map(o=>
+      `<button class="btn ${currentKey===o.key?'primary':'ghost'}" data-${dataAttr}="${o.key}" style="flex:1;">${o.label}</button>`
+    ).join('');
+    row.innerHTML = `
+      <div style="font-size:calc(11px * var(--fs-scale));color:var(--ink-soft);margin-bottom:8px;">${labelText}</div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">${buttons}</div>
+    `;
+    return row;
+  }
+
+  const sizeRow = optionRow('文字サイズ', FONT_SIZE_OPTIONS, state.fontSize, 'size');
+  sizeRow.style.marginBottom = '12px';
+  wrap.appendChild(sizeRow);
+
+  const weightRow = optionRow('文字の太さ', FONT_WEIGHT_OPTIONS, state.fontWeight, 'weight');
+  weightRow.style.marginBottom = '12px';
+  wrap.appendChild(weightRow);
+
+  const familyRow = optionRow('字体', FONT_FAMILY_OPTIONS, state.fontFamily, 'family');
+  familyRow.style.marginBottom = '16px';
+  wrap.appendChild(familyRow);
+
+  const preview = document.createElement('div');
+  preview.className = 'field-group';
+  preview.style.padding = '14px';
+  preview.innerHTML = `
+    <div style="font-size:calc(11px * var(--fs-scale));color:var(--ink-soft);margin-bottom:6px;">プレビュー</div>
+    <div class="display" style="font-size:calc(20px * var(--fs-scale));">Fan売上 ¥128,000</div>
+    <div style="font-size:calc(13.5px * var(--fs-scale));margin-top:6px;">リピート率　68.4%</div>
+  `;
+  wrap.appendChild(preview);
+
+  sizeRow.querySelectorAll('button[data-size]').forEach(btn=>{
+    btn.onclick = async ()=>{
+      const key = btn.dataset.size;
+      if(state.fontSize===key) return;
+      state.fontSize = key;
+      applyFontSize(key);
+      await saveFontSize(key);
+      render();
+      if(state.tab==='chart'){
+        const main = document.getElementById('main');
+        if(main) loadAndDrawCharts(main);
+      }
+      showToast('文字サイズを「'+FONT_SIZE_OPTIONS.find(o=>o.key===key).label+'」に変更しました');
+    };
+  });
+
+  weightRow.querySelectorAll('button[data-weight]').forEach(btn=>{
+    btn.onclick = async ()=>{
+      const key = btn.dataset.weight;
+      if(state.fontWeight===key) return;
+      state.fontWeight = key;
+      applyFontWeight(key);
+      await saveFontWeight(key);
+      render();
+      if(state.tab==='chart'){
+        const main = document.getElementById('main');
+        if(main) loadAndDrawCharts(main);
+      }
+      showToast('文字の太さを「'+FONT_WEIGHT_OPTIONS.find(o=>o.key===key).label+'」に変更しました');
+    };
+  });
+
+  familyRow.querySelectorAll('button[data-family]').forEach(btn=>{
+    btn.onclick = async ()=>{
+      const key = btn.dataset.family;
+      if(state.fontFamily===key) return;
+      state.fontFamily = key;
+      applyFontFamily(key);
+      await saveFontFamily(key);
+      render();
+      if(state.tab==='chart'){
+        const main = document.getElementById('main');
+        if(main) loadAndDrawCharts(main);
+      }
+      showToast('字体を「'+FONT_FAMILY_OPTIONS.find(o=>o.key===key).label+'」に変更しました');
+    };
+  });
+
+  return wrap;
+}
+
+/* ---- 端末間バックアップ(全年度・完全復元用) ---- */
+async function exportBackup(){
+  try{
+    const list = await storageList('year:', false);
+    const keys = (list && list.keys) || [];
+    if(keys.length===0){ showToast('書き出せるデータがありません'); return; }
+    const years = {};
+    for(const key of keys){
+      const res = await storageGet(key, false);
+      if(res && res.value){
+        years[key.replace('year:','')] = JSON.parse(res.value);
+      }
+    }
+    const backup = { app:'stylist-record-note', version:1, exportedAt:new Date().toISOString(), years };
+    const blob = new Blob([JSON.stringify(backup, null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const stamp = new Date().toISOString().slice(0,10).replace(/-/g,'');
+    a.href = url; a.download = '成績ノート_バックアップ_'+stamp+'.json';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast(Object.keys(years).length+'年度分をバックアップしました');
+  }catch(err){
+    console.error(err);
+    showToast('バックアップの書き出しに失敗しました: '+(err && err.message ? err.message : err));
+  }
+}
+function handleImportBackup(ev){
+  const file = ev.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = async (e)=>{
+    try{
+      const backup = JSON.parse(e.target.result);
+      if(!backup || !backup.years || Object.keys(backup.years).length===0){
+        showToast('バックアップファイルの形式が正しくありません');
+        return;
+      }
+      const yearKeys = Object.keys(backup.years);
+      let savedCount = 0;
+      for(const y of yearKeys){
+        const ok = await saveYear(y, backup.years[y]);
+        if(ok) savedCount++;
+      }
+      if(savedCount===0){
+        showToast('保存に失敗しました（この環境ではデータを保存できません）');
+        return;
+      }
+      // 復元した年度・月次入力タブに自動で切り替えて、結果をすぐ確認できるようにする
+      state.year = parseInt(yearKeys[0], 10);
+      state.tab = 'grid';
+      state.yearData = await loadYear(state.year);
+      showToast(savedCount+'年度分を復元しました');
+      render();
+    }catch(err){
+      console.error(err);
+      showToast('読み込みに失敗しました: '+(err && err.message ? err.message : err));
+    }
+  };
+  reader.readAsText(file);
+  ev.target.value='';
+}
+
+/* ---- Import ---- */
+function handleImportFile(ev){
+  const file = ev.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = async (e)=>{
+    try{
+      const data = new Uint8Array(e.target.result);
+      const wb = XLSX.read(data, {type:'array'});
+      const sheet = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(sheet, {header:1, defval:''});
+      const imported = parseSalonSheet(rows, state.year);
+      const importedCount = Object.keys(imported).length;
+      if(importedCount===0){
+        showToast('データを見つけられませんでした');
+        return;
+      }
+      state.yearData = Object.assign({}, state.yearData, imported);
+      await saveYear(state.year, state.yearData);
+      showToast(importedCount+'ヶ月分を読み込みました');
+      render();
+    }catch(err){
+      console.error(err);
+      showToast('読み込みに失敗しました');
+    }
+  };
+  reader.readAsArrayBuffer(file);
+  ev.target.value='';
+}
+
+// 「2月」実績行 → 次の「総技売」行、という2行1組の構造を月ごとに拾う
+function parseSalonSheet(rows, baseYear){
+  const result = {};
+  const monthMap = {'1':1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,'10':10,'11':11,'12':12};
+  for(let i=0;i<rows.length;i++){
+    const row = rows[i] || [];
+    const cellA = (row[0]||'').toString();
+    const match = cellA.match(/^(\d{1,2})月/);
+    if(!match) continue;
+    const monthNum = monthMap[match[1]];
+    if(!monthNum) continue;
+    const dataRow = row;                 // 実績行 (A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q...)
+    const nextRow = rows[i+1] || [];     // 総技売 行
+    const rec = {
+      fanSales:      toNum(dataRow[2]),
+      totalSales:    toNum(nextRow[2]),
+      retail:        toNum(dataRow[4]),
+      fanCustomers:  toNum(dataRow[6]),
+      newCustomers:  toNum(dataRow[7]),
+      referrals:     toNum(dataRow[8]),
+      totalCustomers:toNum(dataRow[9]),
+      repeatRate:    toNum(dataRow[10]),
+      newRepeatRate: toNum(dataRow[11]),
+      pRatio:        toNum(dataRow[12]),
+      dRatio:        toNum(dataRow[13]),
+      trRatio:       toNum(dataRow[14]),
+      lossRate:      toNum(dataRow[15]),
+      workPoints:    toNum(dataRow[16]),
+    };
+    // 空の項目は保存しない
+    Object.keys(rec).forEach(k=> (rec[k]===null) && delete rec[k]);
+    if(Object.keys(rec).length===0) continue;
+    // 元表は「2月始まり〜翌1月終わり」の並び。この年度のバケットにそのまま格納する。
+    result[monthNum] = rec;
+  }
+  return result;
+}
+function toNum(v){
+  if(v===''||v===undefined||v===null) return null;
+  const n = parseFloat(v);
+  return isNaN(n) ? null : n;
+}
+
+/* ---- Export ---- */
+function buildSheetAOA(){
+  const header1 = ['【'+state.year+'年度・'+toWareki(state.year)+'度('+state.year+'年2月〜'+(state.year+1)+'年1月)】年間実績'];
+  const header2 = ['月','種別','Fan売上','Free売上','店販','客単価','Fan客数','新規','紹介','総客','ﾘﾋﾟｰﾄ率','新規R率','P比率(15%↑)','D比率(30%↑)','Tr比率(30%↑)','失客数','失客率(10%↓)','作業P'];
+  const aoa = [header1, header2];
+  MONTHS.forEach(m=>{
+    const rec = state.yearData[m];
+    if(!rec) return;
+    const d = computeDerived(rec);
+    aoa.push([
+      m+'月','実績',
+      rec.fanSales??'', d.freeSales??'', rec.retail??'', d.unitPrice??'',
+      rec.fanCustomers??'', rec.newCustomers??'', rec.referrals??'', rec.totalCustomers??'',
+      rec.repeatRate??'', rec.newRepeatRate??'', rec.pRatio??'', rec.dRatio??'', rec.trRatio??'', rec.lossCount??'', rec.lossRate??'', rec.workPoints??''
+    ]);
+    aoa.push(['','総技売', rec.totalSales??'']);
+  });
+  return aoa;
+}
+function exportXlsx(){
+  if(Object.keys(state.yearData).length===0){ showToast('書き出せるデータがありません'); return; }
+  const aoa = buildSheetAOA();
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, String(state.year));
+  XLSX.writeFile(wb, '成績表_'+state.year+'年度.xlsx');
+  showToast('Excelファイルを書き出しました');
+}
+function exportCsv(){
+  if(Object.keys(state.yearData).length===0){ showToast('書き出せるデータがありません'); return; }
+  const aoa = buildSheetAOA();
+  const csv = aoa.map(r=>r.map(c=>{
+    const s = (c===undefined||c===null)?'':String(c);
+    return /[",\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s;
+  }).join(',')).join('\n');
+  const blob = new Blob(["\uFEFF"+csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = '成績表_'+state.year+'年度.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('CSVファイルを書き出しました');
+}
+
+/* ============================================================
+   入力シート(モーダル)
+   ============================================================ */
+function fieldRowHtml(f, rec){
+  return `
+    <div class="field-row">
+      <label for="f_${f.key}">${f.label}${f.hint?`<span class="hint">${f.hint}</span>`:''}</label>
+      <input type="text" inputmode="decimal" pattern="[0-9]*[.]?[0-9]*" id="f_${f.key}" value="${rec[f.key]??''}" />
+      <span class="unit">${f.unit}</span>
+    </div>`;
+}
+function computedInlineHtml(label, id){
+  return `
+    <div class="computed-inline">
+      <label>${label}<span class="tag">自動</span></label>
+      <span class="v" id="${id}">—</span>
+    </div>`;
+}
+
+function openSheet(month){
+  state.editingMonth = month;
+  const rec = Object.assign({}, state.yearData[month]||{});
+  const overlay = document.getElementById('overlay');
+  const sheet = document.getElementById('sheet');
+
+  const byKey = k => FIELDS.find(f=>f.key===k);
+  let groupsHtml = GROUP_ORDER.map(g=>{
+    if(g==='売上'){
+      return `<div class="field-group">
+        <div class="fg-label">売上</div>
+        ${fieldRowHtml(byKey('fanSales'), rec)}
+        ${computedInlineHtml('Free売上', 'freeSalesVal')}
+        ${fieldRowHtml(byKey('totalSales'), rec)}
+        ${fieldRowHtml(byKey('retail'), rec)}
+        ${computedInlineHtml('客単価', 'unitPriceVal')}
+      </div>`;
+    }
+    const fields = FIELDS.filter(f=>f.group===g);
+    return `<div class="field-group">
+      <div class="fg-label">${g}</div>
+      ${fields.map(f=>fieldRowHtml(f, rec)).join('')}
+    </div>`;
+  }).join('');
+
+  sheet.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div class="stamp display">${month}月</div>
+        <div class="sheet-title">${calendarYearOf(month,state.year)}年（${toWareki(calendarYearOf(month,state.year))}） ${month}月の実績</div>
+      </div>
+      <button class="sheet-close" id="closeSheet">✕</button>
+    </div>
+    ${groupsHtml}
+    <button class="btn ghost" id="clearBtn" style="width:100%; margin-top:14px;">この月の入力を全てクリア</button>
+    <div class="sheet-actions">
+      <button class="btn ghost" id="cancelBtn">キャンセル</button>
+      <button class="btn primary" id="saveBtn">保存する</button>
+    </div>
+    ${state.yearData[month] ? '<button class="btn danger-text" id="deleteBtn">保存済みのこの月の記録を削除</button>' : ''}
+  `;
+
+  function refreshComputed(){
+    const cur = {};
+    FIELDS.forEach(f=>{ const el=document.getElementById('f_'+f.key); cur[f.key]= el.value===''?null:parseFloat(el.value); });
+    const d = computeDerived(cur);
+    document.getElementById('freeSalesVal').textContent = d.freeSales!==null ? yen(d.freeSales) : '—';
+    document.getElementById('unitPriceVal').textContent = d.unitPrice!==null ? yen(d.unitPrice) : '—';
+  }
+  refreshComputed();
+
+  // Enter（確定）で次の入力欄へ移動。最後の項目はキーボードを閉じる。
+  const orderedInputs = FIELDS.map(f=> document.getElementById('f_'+f.key));
+  orderedInputs.forEach((inp, idx)=>{
+    inp.setAttribute('enterkeyhint', idx===orderedInputs.length-1 ? 'done' : 'next');
+    inp.addEventListener('keydown', (e)=>{
+      if(e.key==='Enter' || e.keyCode===13){
+        e.preventDefault();
+        const next = orderedInputs[idx+1];
+        if(next){ next.focus(); if(next.select) next.select(); }
+        else { inp.blur(); }
+      }
+    });
+    inp.addEventListener('focus', ()=>{ if(inp.select) inp.select(); });
+    // text入力なので数字と小数点以外は自動的に取り除く（小数点は1つまで）。取り除いた後に自動計算を更新する。
+    inp.addEventListener('input', ()=>{
+      let v = inp.value.replace(/[^0-9.]/g,'');
+      const firstDot = v.indexOf('.');
+      if(firstDot!==-1){ v = v.slice(0,firstDot+1) + v.slice(firstDot+1).replace(/\./g,''); }
+      if(v!==inp.value) inp.value = v;
+      refreshComputed();
+    });
+  });
+
+  document.getElementById('closeSheet').onclick = closeSheet;
+  document.getElementById('cancelBtn').onclick = closeSheet;
+  overlay.onclick = closeSheet;
+  document.getElementById('clearBtn').onclick = ()=>{
+    FIELDS.forEach(f=>{ document.getElementById('f_'+f.key).value = ''; });
+    refreshComputed();
+    if(orderedInputs[0]) orderedInputs[0].focus();
+    showToast('この月の入力をクリアしました（保存するまでは反映されません）');
+  };
+  const delBtn = document.getElementById('deleteBtn');
+  if(delBtn) delBtn.onclick = async ()=>{
+    delete state.yearData[month];
+    await saveYear(state.year, state.yearData);
+    await saveLastYear(state.year);
+    showToast(month+'月の記録を削除しました');
+    closeSheet(); render();
+  };
+  document.getElementById('saveBtn').onclick = async ()=>{
+    const newRec = {};
+    FIELDS.forEach(f=>{
+      const v = document.getElementById('f_'+f.key).value;
+      if(v!=='') newRec[f.key] = parseFloat(v);
+    });
+    state.yearData[month] = newRec;
+    const ok = await saveYear(state.year, state.yearData);
+    if(ok) await saveLastYear(state.year);
+    showToast(ok ? month+'月の記録を保存しました' : '保存に失敗しました');
+    closeSheet(); render();
+  };
+
+  overlay.classList.add('open');
+  requestAnimationFrame(()=> sheet.classList.add('open'));
+}
+function closeSheet(){
+  document.getElementById('sheet').classList.remove('open');
+  document.getElementById('overlay').classList.remove('open');
+  state.editingMonth = null;
+}
+
+/* ============================================================
+   全体レンダリング / ナビゲーション
+   ============================================================ */
+function render(){
+  document.getElementById('yrLabel').textContent = state.year+'年度';
+  document.getElementById('yrRange').textContent = toWareki(state.year)+'度　'+state.year+'年2月〜'+(state.year+1)+'年1月';
+  const main = document.getElementById('main');
+  main.innerHTML='';
+  if(state.tab==='grid') main.appendChild(renderGrid());
+  else if(state.tab==='summary') main.appendChild(renderSummary());
+  else if(state.tab==='chart') main.appendChild(renderChart());
+  else if(state.tab==='export') main.appendChild(renderExport());
+  else main.appendChild(renderSettings());
+
+  document.querySelectorAll('.tab-btn').forEach(b=>{
+    b.classList.toggle('active', b.dataset.tab===state.tab);
+  });
+}
+
+document.querySelectorAll('.tab-btn').forEach(b=>{
+  b.onclick = ()=>{ state.tab = b.dataset.tab; render(); };
+});
+document.getElementById('yrPrev').onclick = async ()=>{
+  state.year--; state.yearData = await loadYear(state.year); render();
+};
+document.getElementById('yrNext').onclick = async ()=>{
+  state.year++; state.yearData = await loadYear(state.year); render();
+};
+
+/* ============================================================
+   起動
+   ============================================================ */
+let resizeTimer = null;
+window.addEventListener('resize', ()=>{
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(()=>{
+    if(state.tab==='chart'){
+      const main = document.getElementById('main');
+      if(main) loadAndDrawCharts(main);
+    }
+  }, 150);
+});
+
+// PWA: Service Workerの登録（HTTPSまたはlocalhostでのみ有効。file://で開いた場合は失敗するが動作に支障はない）
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('./service-worker.js').catch((err)=>{
+      console.warn('Service Worker登録をスキップしました（file://で開いている場合は想定内です）:', err && err.message);
+    });
+  });
+}
+
+(async function init(){
+  state.fontSize = await loadFontSize();
+  applyFontSize(state.fontSize);
+  state.fontWeight = await loadFontWeight();
+  applyFontWeight(state.fontWeight);
+  state.fontFamily = await loadFontFamily();
+  applyFontFamily(state.fontFamily);
+  const lastYear = await loadLastYear();
+  state.year = (lastYear!==null) ? lastYear : currentFiscalYear();
+  state.yearData = await loadYear(state.year);
+  render();
+})();
+</script>
+</body>
+</html>

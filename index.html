@@ -14,7 +14,7 @@
 <meta name="apple-mobile-web-app-title" content="成績ノート">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800;9..144,900&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@400;500;600;700;800;900&family=Noto+Serif+JP:wght@400;500;600;700;800;900&family=M+PLUS+Rounded+1c:wght@400;500;700;800;900&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" crossorigin="anonymous"></script>
 <style>
   :root{
     --bg:#F6F1EA;
@@ -72,7 +72,7 @@
     font-weight:calc(400 + var(--fw-delta));
     -webkit-font-smoothing:antialiased;
     min-height:100vh;
-    padding-bottom:78px;
+    padding-bottom:calc(45px + 33px * var(--fs-scale) + env(safe-area-inset-bottom));
   }
   .mono{font-family:var(--font-mono);}
   .display{font-family:var(--font-display);}
@@ -1216,6 +1216,7 @@ function handleImportBackup(ev){
       state.year = parseInt(yearKeys[0], 10);
       state.tab = 'grid';
       state.yearData = await loadYear(state.year);
+      await saveLastYear(state.year); // 次回起動時もこの年度が開くように記録しておく
       showToast(savedCount+'年度分を復元しました');
       render();
     }catch(err){
@@ -1231,6 +1232,11 @@ function handleImportBackup(ev){
 function handleImportFile(ev){
   const file = ev.target.files[0];
   if(!file) return;
+  if(typeof XLSX === 'undefined'){
+    showToast('Excel機能を読み込めませんでした。インターネット接続を確認して、もう一度お試しください');
+    ev.target.value='';
+    return;
+  }
   const reader = new FileReader();
   reader.onload = async (e)=>{
     try{
@@ -1321,12 +1327,21 @@ function buildSheetAOA(){
 }
 function exportXlsx(){
   if(Object.keys(state.yearData).length===0){ showToast('書き出せるデータがありません'); return; }
-  const aoa = buildSheetAOA();
-  const ws = XLSX.utils.aoa_to_sheet(aoa);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, String(state.year));
-  XLSX.writeFile(wb, '成績表_'+state.year+'年度.xlsx');
-  showToast('Excelファイルを書き出しました');
+  if(typeof XLSX === 'undefined'){
+    showToast('Excel機能を読み込めませんでした。インターネット接続を確認して、もう一度お試しください（CSV形式は接続不要で書き出せます）');
+    return;
+  }
+  try{
+    const aoa = buildSheetAOA();
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, String(state.year));
+    XLSX.writeFile(wb, '成績表_'+state.year+'年度.xlsx');
+    showToast('Excelファイルを書き出しました');
+  }catch(err){
+    console.error(err);
+    showToast('Excelファイルの書き出しに失敗しました');
+  }
 }
 function exportCsv(){
   if(Object.keys(state.yearData).length===0){ showToast('書き出せるデータがありません'); return; }

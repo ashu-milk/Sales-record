@@ -1,4 +1,4 @@
-const CACHE_NAME = 'stylist-note-v4';
+const CACHE_NAME = 'stylist-note-v5';
 const ASSETS = [
   './',
   './index.html',
@@ -7,11 +7,23 @@ const ASSETS = [
   './icon-512.png',
   './icon-maskable-512.png',
 ];
+// Excel書き出し/読み込みで使うライブラリ。取得できなくてもアプリ本体の動作には影響しないため、
+// 失敗してもインストール全体を失敗させないよう別扱いにする。
+const OPTIONAL_ASSETS = [
+  'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
+];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then((cache) => cache.addAll(ASSETS))
+      .then(async (cache) => {
+        await cache.addAll(ASSETS);
+        await Promise.all(OPTIONAL_ASSETS.map((url) =>
+          cache.add(url).catch(() => {
+            // オフライン等で取得できなくても、次回オンライン時にfetchハンドラー側でキャッシュされる
+          })
+        ));
+      })
       .then(() => self.skipWaiting())
   );
 });

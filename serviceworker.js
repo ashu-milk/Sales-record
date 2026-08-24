@@ -1,4 +1,4 @@
-const CACHE_NAME = 'stylist-note-v7';
+const CACHE_NAME = 'stylist-note-v8';
 const ASSETS = [
   './',
   './index.html',
@@ -44,19 +44,17 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
+  // ネットワークにつながっている時は常に最新を取りに行き(ブラウザのHTTPキャッシュも無視)、
+  // 取得できたらキャッシュを更新する。オフライン等で取得できない時だけキャッシュを使う。
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      const network = fetch(event.request)
-        .then((res) => {
-          if (res && res.status === 200) {
-            const resClone = res.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, resClone));
-          }
-          return res;
-        })
-        .catch(() => cached);
-      // キャッシュがあれば即座に返しつつ、裏でネットワークからも更新する
-      return cached || network;
-    })
+    fetch(event.request, {cache: 'no-store'})
+      .then((res) => {
+        if (res && res.status === 200) {
+          const resClone = res.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, resClone));
+        }
+        return res;
+      })
+      .catch(() => caches.match(event.request))
   );
 });

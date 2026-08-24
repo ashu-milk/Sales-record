@@ -1,4 +1,4 @@
-const CACHE_NAME = 'stylist-note-v8';
+const CACHE_NAME = 'stylist-note-v10';
 const ASSETS = [
   './',
   './index.html',

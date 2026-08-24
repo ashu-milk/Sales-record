@@ -18,7 +18,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="成績ノート">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800;9..144,900&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@400;500;600;700;800;900&family=Noto+Serif+JP:wght@400;500;600;700;800;900&family=M+PLUS+Rounded+1c:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800;9..144,900&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@400;500;600;700;800;900&family=Noto+Serif+JP:wght@400;500;600;700;800;900&family=M+PLUS+Rounded+1c:wght@400;500;700;800;900&family=Kiwi+Maru:wght@400;500&family=Kosugi+Maru&family=Yuji+Syuku&family=Hachi+Maru+Pop&family=Rampart+One&family=Mochiy+Pop+One&family=Yomogi&family=Reggae+One&family=DotGothic16&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" crossorigin="anonymous"></script>
 <style>
   :root{
@@ -46,27 +46,66 @@
   html[data-fontsize="l"]{ --fs-scale:1.15; }
   html[data-fontsize="xl"]{ --fs-scale:1.3; }
   html[data-fontweight="regular"]{ --fw-delta:0; }
-  html[data-fontweight="bold"]{ --fw-delta:100; }
-  html[data-fontweight="bolder"]{ --fw-delta:200; }
-  html[data-fontfamily="standard"]{
-    --font-display:'Fraunces', serif;
-    --font-body:'Manrope', sans-serif;
-    --font-mono:'JetBrains Mono', monospace;
-  }
+  html[data-fontweight="bold"]{ --fw-delta:300; }
   html[data-fontfamily="gothic"]{
     --font-display:'Noto Sans JP', sans-serif;
     --font-body:'Noto Sans JP', sans-serif;
     --font-mono:'Noto Sans JP', sans-serif;
   }
-  html[data-fontfamily="rounded"]{
-    --font-display:'M PLUS Rounded 1c', sans-serif;
-    --font-body:'M PLUS Rounded 1c', sans-serif;
-    --font-mono:'M PLUS Rounded 1c', sans-serif;
-  }
   html[data-fontfamily="mincho"]{
     --font-display:'Noto Serif JP', serif;
     --font-body:'Noto Serif JP', serif;
     --font-mono:'Noto Serif JP', serif;
+  }
+  html[data-fontfamily="roundgothic"]{
+    --font-display:'M PLUS Rounded 1c', sans-serif;
+    --font-body:'M PLUS Rounded 1c', sans-serif;
+    --font-mono:'M PLUS Rounded 1c', sans-serif;
+  }
+  html[data-fontfamily="marumoji"]{
+    --font-display:'Kiwi Maru', serif;
+    --font-body:'Kiwi Maru', serif;
+    --font-mono:'Kiwi Maru', serif;
+  }
+  html[data-fontfamily="kosugimaru"]{
+    --font-display:'Kosugi Maru', sans-serif;
+    --font-body:'Kosugi Maru', sans-serif;
+    --font-mono:'Kosugi Maru', sans-serif;
+  }
+  html[data-fontfamily="fude"]{
+    --font-display:'Yuji Syuku', serif;
+    --font-body:'Yuji Syuku', serif;
+    --font-mono:'Yuji Syuku', serif;
+  }
+  html[data-fontfamily="handwritepop"]{
+    --font-display:'Hachi Maru Pop', cursive;
+    --font-body:'Hachi Maru Pop', cursive;
+    --font-mono:'Hachi Maru Pop', cursive;
+  }
+  html[data-fontfamily="decorative"]{
+    --font-display:'Rampart One', cursive;
+    --font-body:'Rampart One', cursive;
+    --font-mono:'Rampart One', cursive;
+  }
+  html[data-fontfamily="pop"]{
+    --font-display:'Mochiy Pop One', sans-serif;
+    --font-body:'Mochiy Pop One', sans-serif;
+    --font-mono:'Mochiy Pop One', sans-serif;
+  }
+  html[data-fontfamily="handwritesoft"]{
+    --font-display:'Yomogi', cursive;
+    --font-body:'Yomogi', cursive;
+    --font-mono:'Yomogi', cursive;
+  }
+  html[data-fontfamily="reggae"]{
+    --font-display:'Reggae One', cursive;
+    --font-body:'Reggae One', cursive;
+    --font-mono:'Reggae One', cursive;
+  }
+  html[data-fontfamily="dot"]{
+    --font-display:'DotGothic16', sans-serif;
+    --font-body:'DotGothic16', sans-serif;
+    --font-mono:'DotGothic16', sans-serif;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
@@ -219,11 +258,57 @@
   .field-group > div:last-child{border-bottom:none;}
   .field-row label{font-size:calc(13.5px * var(--fs-scale)); flex:1; line-height:1.3;}
   .field-row .hint{display:block; font-size:calc(10.5px * var(--fs-scale)); color:var(--ink-soft); margin-top:1px;}
-  .field-row.menu-row{cursor:pointer;}
-  .field-row.menu-row:active{background:var(--surface-muted);}
-  .field-row.menu-row label{display:flex; align-items:center; gap:10px;}
-  .field-row.menu-row .menu-ic{font-size:calc(16px * var(--fs-scale)); flex-shrink:0;}
-  .field-row.menu-row .chevron{font-size:calc(16px * var(--fs-scale)); color:var(--ink-soft); flex-shrink:0;}
+  /* ---- 設定タブ: アコーディオン(項目ごとに個別に開閉) ---- */
+  .accordion{
+    background:var(--surface); border:1.3px solid var(--line); border-radius:var(--radius);
+    margin-top:12px; overflow:hidden; transition:border-color .15s ease;
+  }
+  .accordion.open{border-color:var(--accent);}
+  .accordion-header{
+    width:100%; display:flex; align-items:center; gap:10px;
+    background:none; border:none; padding:14px; margin:0; cursor:pointer;
+    font-family:var(--font-body); text-align:left; -webkit-tap-highlight-color:transparent;
+  }
+  .accordion-header:active{background:var(--surface-muted);}
+  .accordion.open .accordion-header{border-bottom:1px solid var(--line);}
+  .accordion-header .menu-ic{font-size:calc(16px * var(--fs-scale)); flex-shrink:0;}
+  .accordion-header .accordion-label{flex:1; font-size:calc(13.5px * var(--fs-scale)); line-height:1.3; color:var(--ink);}
+  .accordion-header .accordion-label .hint{display:block; font-size:calc(10.5px * var(--fs-scale)); color:var(--ink-soft); margin-top:1px;}
+  .accordion-header .chevron{
+    font-size:calc(11px * var(--fs-scale)); color:var(--ink-soft); flex-shrink:0; transition:transform .2s ease;
+  }
+  .accordion.open .accordion-header .chevron{transform:rotate(180deg); color:var(--accent);}
+  .accordion-body{padding:14px;}
+  .accordion-body > .section-title:first-child{margin-top:0;}
+
+  /* ---- 設定 > フォント設定: 字体グリッド ---- */
+  .font-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:8px;}
+  .font-tile{
+    display:flex; flex-direction:column; align-items:center; gap:4px;
+    background:var(--surface-muted); border:1.3px solid transparent; border-radius:12px;
+    padding:10px 4px; cursor:pointer; font-family:var(--font-body); -webkit-tap-highlight-color:transparent;
+  }
+  .font-tile.active{background:var(--accent-soft); border-color:var(--accent);}
+  .font-tile-sample{font-size:calc(20px * var(--fs-scale)); color:var(--ink); line-height:1.1; white-space:nowrap;}
+  .font-tile.active .font-tile-sample{color:var(--accent);}
+  .font-tile-label{font-size:calc(9.5px * var(--fs-scale)); color:var(--ink-soft); text-align:center; line-height:1.25;}
+  .font-tile.active .font-tile-label{color:var(--accent); font-weight:calc(700 + var(--fw-delta));}
+
+  /* ---- 設定 > フォント設定: 太字トグルスイッチ ---- */
+  .toggle-row{display:flex; align-items:center; justify-content:space-between; gap:10px;}
+  .toggle-row label{font-size:calc(13.5px * var(--fs-scale)); flex:1; line-height:1.3; cursor:pointer;}
+  .toggle-switch{
+    position:relative; flex-shrink:0; width:46px; height:27px; border-radius:999px;
+    border:none; background:var(--surface-muted); padding:0; cursor:pointer;
+    transition:background .15s ease; -webkit-tap-highlight-color:transparent;
+  }
+  .toggle-switch.on{background:var(--accent);}
+  .toggle-knob{
+    position:absolute; top:3px; left:3px; width:21px; height:21px; border-radius:50%;
+    background:#fff; box-shadow:0 1px 3px rgba(43,35,33,.3); transition:transform .15s ease;
+  }
+  .toggle-switch.on .toggle-knob{transform:translateX(19px);}
+
   .field-row input{
     width:108px; text-align:right; border:none; background:var(--surface-muted);
     border-radius:9px; padding:8px 10px; font-size:calc(15px * var(--fs-scale)); font-family:var(--font-mono);
@@ -393,21 +478,30 @@ function fontScaleOf(key){
   return opt ? opt.scale : 1;
 }
 
+// 「すべての文字を太字にする」トグル用（regular=オフ／bold=オン の2値）
 const FONT_WEIGHT_OPTIONS = [
-  {key:'regular', label:'標準',  delta:0},
-  {key:'bold',    label:'太め',  delta:100},
-  {key:'bolder',  label:'極太',  delta:200},
+  {key:'regular', label:'標準', delta:0},
+  {key:'bold',    label:'太字', delta:300},
 ];
 function fontWeightDeltaOf(key){
   const opt = FONT_WEIGHT_OPTIONS.find(o=>o.key===key);
   return opt ? opt.delta : 0;
 }
 
+// 字体は12種類。飾り文字系も含めてGoogle Fontsから読み込み、選んだ書体をアプリ全体（見出し・本文・数値表示すべて）に反映する。
 const FONT_FAMILY_OPTIONS = [
-  {key:'standard', label:'標準(デザイン)', display:"'Fraunces', serif",        body:"'Manrope', sans-serif",        mono:"'JetBrains Mono', monospace"},
-  {key:'gothic',   label:'ゴシック',       display:"'Noto Sans JP', sans-serif", body:"'Noto Sans JP', sans-serif",   mono:"'Noto Sans JP', sans-serif"},
-  {key:'rounded',  label:'丸ゴシック',     display:"'M PLUS Rounded 1c', sans-serif", body:"'M PLUS Rounded 1c', sans-serif", mono:"'M PLUS Rounded 1c', sans-serif"},
-  {key:'mincho',   label:'明朝',           display:"'Noto Serif JP', serif",    body:"'Noto Serif JP', serif",       mono:"'Noto Serif JP', serif"},
+  {key:'gothic',        label:'ゴシック体（標準）', display:"'Noto Sans JP', sans-serif",   body:"'Noto Sans JP', sans-serif",   mono:"'Noto Sans JP', sans-serif"},
+  {key:'mincho',        label:'明朝体',            display:"'Noto Serif JP', serif",       body:"'Noto Serif JP', serif",       mono:"'Noto Serif JP', serif"},
+  {key:'roundgothic',   label:'丸ゴシック',        display:"'M PLUS Rounded 1c', sans-serif", body:"'M PLUS Rounded 1c', sans-serif", mono:"'M PLUS Rounded 1c', sans-serif"},
+  {key:'marumoji',      label:'丸文字',            display:"'Kiwi Maru', serif",           body:"'Kiwi Maru', serif",           mono:"'Kiwi Maru', serif"},
+  {key:'kosugimaru',    label:'まるもじ',          display:"'Kosugi Maru', sans-serif",    body:"'Kosugi Maru', sans-serif",    mono:"'Kosugi Maru', sans-serif"},
+  {key:'fude',          label:'筆文字',            display:"'Yuji Syuku', serif",          body:"'Yuji Syuku', serif",          mono:"'Yuji Syuku', serif"},
+  {key:'handwritepop',  label:'手書き風（ポップ）', display:"'Hachi Maru Pop', cursive",    body:"'Hachi Maru Pop', cursive",    mono:"'Hachi Maru Pop', cursive"},
+  {key:'decorative',    label:'装飾体',            display:"'Rampart One', cursive",       body:"'Rampart One', cursive",       mono:"'Rampart One', cursive"},
+  {key:'pop',           label:'ポップ体',          display:"'Mochiy Pop One', sans-serif", body:"'Mochiy Pop One', sans-serif", mono:"'Mochiy Pop One', sans-serif"},
+  {key:'handwritesoft', label:'手書き風（やわらか）', display:"'Yomogi', cursive",          body:"'Yomogi', cursive",            mono:"'Yomogi', cursive"},
+  {key:'reggae',        label:'レゲエ体',          display:"'Reggae One', cursive",        body:"'Reggae One', cursive",        mono:"'Reggae One', cursive"},
+  {key:'dot',           label:'ドット文字',        display:"'DotGothic16', sans-serif",    body:"'DotGothic16', sans-serif",    mono:"'DotGothic16', sans-serif"},
 ];
 function fontFamilyOf(key){
   return FONT_FAMILY_OPTIONS.find(o=>o.key===key) || FONT_FAMILY_OPTIONS[0];
@@ -423,8 +517,9 @@ let state = {
   rangeFrom: null,              // {year, month} 暦年月（月選択後に初期化）
   rangeTo: null,
   fontSize: 'm',                 // 8インチタブレット等での文字サイズ設定 's'|'m'|'l'|'xl'
-  fontWeight: 'regular',         // 文字の太さ 'regular'|'bold'|'bolder'
-  fontFamily: 'standard',        // 字体 'standard'|'gothic'|'rounded'|'mincho'
+  fontWeight: 'regular',         // すべての文字を太字にする 'regular'(オフ)|'bold'(オン)
+  fontFamily: 'gothic',          // 字体（12種類。FONT_FAMILY_OPTIONS参照）
+  settingsOpen: {font:false, data:false}, // 設定タブ内、各項目のアコーディオン開閉状態（項目ごとに個別）
 };
 
 /* ============================================================
@@ -565,10 +660,11 @@ function applyFontWeight(key){
 async function loadFontFamily(){
   try{
     const res = await storageGet('settings:fontFamily', false);
-    const val = res && res.value ? res.value : 'standard';
-    return FONT_FAMILY_OPTIONS.some(o=>o.key===val) ? val : 'standard';
+    const val = res && res.value ? res.value : 'gothic';
+    // 旧バージョンの'standard'など、現在の12種類に存在しないキーが保存されていた場合は既定値にフォールバックする
+    return FONT_FAMILY_OPTIONS.some(o=>o.key===val) ? val : 'gothic';
   }catch(e){
-    return 'standard';
+    return 'gothic';
   }
 }
 async function saveFontFamily(key){
@@ -1069,7 +1165,7 @@ function renderExport(){
 }
 
 /* ============================================================
-   レンダリング: 設定（メニュー。各項目はボトムシートで開く）
+   レンダリング: 設定（アコーディオン形式。項目ごとに個別に開閉する）
    ============================================================ */
 function renderSettings(){
   const wrap = document.createElement('div');
@@ -1079,27 +1175,64 @@ function renderSettings(){
   title.textContent = '設定';
   wrap.appendChild(title);
 
-  const menu = document.createElement('div');
-  menu.className = 'field-group';
-  menu.innerHTML = `
-    <div class="field-row menu-row" id="openFontSettings">
-      <label><span class="menu-ic">🔤</span>フォント設定<span class="hint">文字のサイズ・太さ・字体を変更</span></label>
-      <span class="chevron">›</span>
-    </div>
-    <div class="field-row menu-row" id="openDataSettings">
-      <label><span class="menu-ic">⇄</span>読込・書出<span class="hint">バックアップ・Excel連携・データの書き出し</span></label>
-      <span class="chevron">›</span>
-    </div>
-  `;
-  wrap.appendChild(menu);
+  wrap.appendChild(buildSettingsAccordion({
+    key: 'font',
+    icon: '🔤',
+    label: 'フォント設定',
+    hint: '文字のサイズ・太さ・字体を変更',
+    contentHtml: fontSettingsContentHtml(),
+    bindHandlers: bindFontSettingsContentHandlers,
+  }));
 
-  menu.querySelector('#openFontSettings').onclick = openFontSettingsSheet;
-  menu.querySelector('#openDataSettings').onclick = openDataSettingsSheet;
+  wrap.appendChild(buildSettingsAccordion({
+    key: 'data',
+    icon: '⇄',
+    label: '読込・書出',
+    hint: 'バックアップ・Excel連携・データの書き出し',
+    contentNode: renderExport(),
+  }));
 
   return wrap;
 }
 
-/* ---- 設定 > フォント設定（ボトムシート） ---- */
+/* ---- 設定の各項目を開閉できるアコーディオンとして組み立てる ----
+   key: state.settingsOpen 内の開閉フラグのキー（項目ごとに独立して開閉する）
+   contentHtml+bindHandlers か、contentNode のどちらかを渡す ---- */
+function buildSettingsAccordion({key, icon, label, hint, contentHtml, contentNode, bindHandlers}){
+  const isOpen = !!state.settingsOpen[key];
+  const acc = document.createElement('div');
+  acc.className = 'accordion' + (isOpen ? ' open' : '');
+
+  const header = document.createElement('button');
+  header.type = 'button';
+  header.className = 'accordion-header';
+  header.innerHTML = `
+    <span class="menu-ic">${icon}</span>
+    <span class="accordion-label">${label}<span class="hint">${hint}</span></span>
+    <span class="chevron">▾</span>
+  `;
+  header.onclick = ()=>{
+    state.settingsOpen[key] = !state.settingsOpen[key];
+    render();
+  };
+  acc.appendChild(header);
+
+  if(isOpen){
+    const body = document.createElement('div');
+    body.className = 'accordion-body';
+    if(contentNode){
+      body.appendChild(contentNode);
+    }else if(contentHtml){
+      body.innerHTML = contentHtml;
+      if(bindHandlers) bindHandlers(body);
+    }
+    acc.appendChild(body);
+  }
+
+  return acc;
+}
+
+/* ---- 設定 > フォント設定（アコーディオンの中身） ---- */
 function fontSettingsOptionRowHtml(labelText, options, currentKey, dataAttr){
   const buttons = options.map(o=>
     `<button class="btn ${currentKey===o.key?'primary':'ghost'}" data-${dataAttr}="${o.key}" style="flex:1;">${o.label}</button>`
@@ -1110,17 +1243,30 @@ function fontSettingsOptionRowHtml(labelText, options, currentKey, dataAttr){
       <div style="display:flex; gap:8px; flex-wrap:wrap;">${buttons}</div>
     </div>`;
 }
-function fontSettingsSheetHtml(){
+function fontFamilyGridHtml(){
+  const tiles = FONT_FAMILY_OPTIONS.map(o=>`
+    <button class="font-tile ${state.fontFamily===o.key?'active':''}" data-family="${o.key}">
+      <span class="font-tile-sample" style="font-family:${o.display};">あ字</span>
+      <span class="font-tile-label">${o.label}</span>
+    </button>`).join('');
   return `
-    <div class="sheet-handle"></div>
-    <div class="sheet-header">
-      <div class="sheet-title">フォント設定</div>
-      <button class="sheet-close" id="closeSheet">✕</button>
+    <div class="field-group" style="padding:14px; margin-top:12px;">
+      <div style="font-size:calc(11px * var(--fs-scale));color:var(--ink-soft);margin-bottom:8px;">字体</div>
+      <div class="font-grid">${tiles}</div>
+    </div>`;
+}
+function fontSettingsContentHtml(){
+  const boldOn = state.fontWeight==='bold';
+  return `
+    <p style="font-size:calc(12.5px * var(--fs-scale));color:var(--ink-soft);line-height:1.7;margin:0 0 4px;">アプリ全体の文字の見た目を変更します。字体は12種類から選べます（一部はGoogle Fontsからの読み込みが必要なため、初回はネット接続時に表示が反映されます）。</p>
+    ${fontFamilyGridHtml()}
+    <div class="field-group" style="padding:14px; margin-top:12px;">
+      <div class="toggle-row">
+        <label for="boldToggle">すべての文字を太字にする</label>
+        <button type="button" id="boldToggle" class="toggle-switch ${boldOn?'on':''}" role="switch" aria-checked="${boldOn}"><span class="toggle-knob"></span></button>
+      </div>
     </div>
-    <p style="font-size:calc(12.5px * var(--fs-scale));color:var(--ink-soft);line-height:1.7;margin:-4px 0 4px;">8インチタブレットなどの画面でも見やすいように、文字のサイズ・太さ・字体をアプリ全体で変更できます。</p>
     ${fontSettingsOptionRowHtml('文字サイズ', FONT_SIZE_OPTIONS, state.fontSize, 'size')}
-    ${fontSettingsOptionRowHtml('文字の太さ', FONT_WEIGHT_OPTIONS, state.fontWeight, 'weight')}
-    ${fontSettingsOptionRowHtml('字体', FONT_FAMILY_OPTIONS, state.fontFamily, 'family')}
     <div class="field-group" style="padding:14px; margin-top:12px;">
       <div style="font-size:calc(11px * var(--fs-scale));color:var(--ink-soft);margin-bottom:6px;">プレビュー</div>
       <div class="display" style="font-size:calc(20px * var(--fs-scale));">Fan売上 ¥128,000</div>
@@ -1128,39 +1274,8 @@ function fontSettingsSheetHtml(){
     </div>
   `;
 }
-function bindFontSettingsSheetHandlers(sheet){
-  sheet.querySelector('#closeSheet').onclick = closeSheet;
-  sheet.querySelectorAll('button[data-size]').forEach(btn=>{
-    btn.onclick = async ()=>{
-      const key = btn.dataset.size;
-      if(state.fontSize===key) return;
-      state.fontSize = key;
-      applyFontSize(key);
-      await saveFontSize(key);
-      if(state.tab==='chart'){
-        const main = document.getElementById('main');
-        if(main) loadAndDrawCharts(main);
-      }
-      showToast('文字サイズを「'+FONT_SIZE_OPTIONS.find(o=>o.key===key).label+'」に変更しました');
-      refreshFontSettingsSheet();
-    };
-  });
-  sheet.querySelectorAll('button[data-weight]').forEach(btn=>{
-    btn.onclick = async ()=>{
-      const key = btn.dataset.weight;
-      if(state.fontWeight===key) return;
-      state.fontWeight = key;
-      applyFontWeight(key);
-      await saveFontWeight(key);
-      if(state.tab==='chart'){
-        const main = document.getElementById('main');
-        if(main) loadAndDrawCharts(main);
-      }
-      showToast('文字の太さを「'+FONT_WEIGHT_OPTIONS.find(o=>o.key===key).label+'」に変更しました');
-      refreshFontSettingsSheet();
-    };
-  });
-  sheet.querySelectorAll('button[data-family]').forEach(btn=>{
+function bindFontSettingsContentHandlers(container){
+  container.querySelectorAll('button[data-family]').forEach(btn=>{
     btn.onclick = async ()=>{
       const key = btn.dataset.family;
       if(state.fontFamily===key) return;
@@ -1172,43 +1287,39 @@ function bindFontSettingsSheetHandlers(sheet){
         if(main) loadAndDrawCharts(main);
       }
       showToast('字体を「'+FONT_FAMILY_OPTIONS.find(o=>o.key===key).label+'」に変更しました');
-      refreshFontSettingsSheet();
+      render();
     };
   });
-}
-function refreshFontSettingsSheet(){
-  const sheet = document.getElementById('sheet');
-  if(!sheet.classList.contains('open')) return;
-  sheet.innerHTML = fontSettingsSheetHtml();
-  bindFontSettingsSheetHandlers(sheet);
-}
-function openFontSettingsSheet(){
-  const overlay = document.getElementById('overlay');
-  const sheet = document.getElementById('sheet');
-  sheet.innerHTML = fontSettingsSheetHtml();
-  bindFontSettingsSheetHandlers(sheet);
-  overlay.onclick = closeSheet;
-  overlay.classList.add('open');
-  requestAnimationFrame(()=> sheet.classList.add('open'));
-}
-
-/* ---- 設定 > 読込・書出（ボトムシート。中身は既存のrenderExport()を再利用） ---- */
-function openDataSettingsSheet(){
-  const overlay = document.getElementById('overlay');
-  const sheet = document.getElementById('sheet');
-  sheet.innerHTML = '';
-  const handle = document.createElement('div');
-  handle.className = 'sheet-handle';
-  sheet.appendChild(handle);
-  const header = document.createElement('div');
-  header.className = 'sheet-header';
-  header.innerHTML = `<div class="sheet-title">読込・書出</div><button class="sheet-close" id="closeSheet">✕</button>`;
-  sheet.appendChild(header);
-  sheet.appendChild(renderExport());
-  sheet.querySelector('#closeSheet').onclick = closeSheet;
-  overlay.onclick = closeSheet;
-  overlay.classList.add('open');
-  requestAnimationFrame(()=> sheet.classList.add('open'));
+  const boldToggle = container.querySelector('#boldToggle');
+  if(boldToggle){
+    boldToggle.onclick = async ()=>{
+      const key = state.fontWeight==='bold' ? 'regular' : 'bold';
+      state.fontWeight = key;
+      applyFontWeight(key);
+      await saveFontWeight(key);
+      if(state.tab==='chart'){
+        const main = document.getElementById('main');
+        if(main) loadAndDrawCharts(main);
+      }
+      showToast(key==='bold' ? 'すべての文字を太字にしました' : '太字をオフにしました');
+      render();
+    };
+  }
+  container.querySelectorAll('button[data-size]').forEach(btn=>{
+    btn.onclick = async ()=>{
+      const key = btn.dataset.size;
+      if(state.fontSize===key) return;
+      state.fontSize = key;
+      applyFontSize(key);
+      await saveFontSize(key);
+      if(state.tab==='chart'){
+        const main = document.getElementById('main');
+        if(main) loadAndDrawCharts(main);
+      }
+      showToast('文字サイズを「'+FONT_SIZE_OPTIONS.find(o=>o.key===key).label+'」に変更しました');
+      render();
+    };
+  });
 }
 
 /* ---- 端末間バックアップ(全年度・完全復元用) ---- */
@@ -1265,7 +1376,7 @@ function handleImportBackup(ev){
       state.yearData = await loadYear(state.year);
       await saveLastYear(state.year); // 次回起動時もこの年度が開くように記録しておく
       showToast(savedCount+'年度分を復元しました');
-      closeSheet(); // 設定 > 読込・書出 のシートを閉じて、復元結果(月次入力)がすぐ見えるようにする
+      state.settingsOpen.data = false; // 設定内の読込・書出アコーディオンを閉じて、復元結果(月次入力)がすぐ見えるようにする
       render();
     }catch(err){
       console.error(err);

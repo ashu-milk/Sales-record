@@ -6,7 +6,12 @@
 <title>Ｓｔｙｌｉｓｔ成績ノート</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#8B3A3A">
-<link rel="icon" href="icon-192.png">
+<link rel="icon" href="icon-48.png" sizes="48x48" type="image/png">
+<link rel="icon" href="icon-72.png" sizes="72x72" type="image/png">
+<link rel="icon" href="icon-96.png" sizes="96x96" type="image/png">
+<link rel="icon" href="icon-144.png" sizes="144x144" type="image/png">
+<link rel="icon" href="icon-192.png" sizes="192x192" type="image/png">
+<link rel="icon" href="icon-512.png" sizes="512x512" type="image/png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -214,6 +219,11 @@
   .field-group > div:last-child{border-bottom:none;}
   .field-row label{font-size:calc(13.5px * var(--fs-scale)); flex:1; line-height:1.3;}
   .field-row .hint{display:block; font-size:calc(10.5px * var(--fs-scale)); color:var(--ink-soft); margin-top:1px;}
+  .field-row.menu-row{cursor:pointer;}
+  .field-row.menu-row:active{background:var(--surface-muted);}
+  .field-row.menu-row label{display:flex; align-items:center; gap:10px;}
+  .field-row.menu-row .menu-ic{font-size:calc(16px * var(--fs-scale)); flex-shrink:0;}
+  .field-row.menu-row .chevron{font-size:calc(16px * var(--fs-scale)); color:var(--ink-soft); flex-shrink:0;}
   .field-row input{
     width:108px; text-align:right; border:none; background:var(--surface-muted);
     border-radius:9px; padding:8px 10px; font-size:calc(15px * var(--fs-scale)); font-family:var(--font-mono);
@@ -329,7 +339,6 @@
   <button class="tab-btn active" data-tab="grid"><span class="ic">🗓</span>月次入力</button>
   <button class="tab-btn" data-tab="summary"><span class="ic">📊</span>年間集計</button>
   <button class="tab-btn" data-tab="chart"><span class="ic">📈</span>グラフ</button>
-  <button class="tab-btn" data-tab="export"><span class="ic">⇄</span>読込・書出</button>
   <button class="tab-btn" data-tab="settings"><span class="ic">⚙️</span>設定</button>
 </nav>
 
@@ -1060,7 +1069,7 @@ function renderExport(){
 }
 
 /* ============================================================
-   レンダリング: 設定
+   レンダリング: 設定（メニュー。各項目はボトムシートで開く）
    ============================================================ */
 function renderSettings(){
   const wrap = document.createElement('div');
@@ -1070,98 +1079,136 @@ function renderSettings(){
   title.textContent = '設定';
   wrap.appendChild(title);
 
-  const intro = document.createElement('p');
-  intro.className = 'no-print';
-  intro.style.cssText = 'font-size:calc(12.5px * var(--fs-scale));color:var(--ink-soft);line-height:1.7;margin:-4px 0 14px;';
-  intro.textContent = '8インチタブレットなどの画面でも見やすいように、文字のサイズ・太さ・字体をアプリ全体で変更できます。';
-  wrap.appendChild(intro);
+  const menu = document.createElement('div');
+  menu.className = 'field-group';
+  menu.innerHTML = `
+    <div class="field-row menu-row" id="openFontSettings">
+      <label><span class="menu-ic">🔤</span>フォント設定<span class="hint">文字のサイズ・太さ・字体を変更</span></label>
+      <span class="chevron">›</span>
+    </div>
+    <div class="field-row menu-row" id="openDataSettings">
+      <label><span class="menu-ic">⇄</span>読込・書出<span class="hint">バックアップ・Excel連携・データの書き出し</span></label>
+      <span class="chevron">›</span>
+    </div>
+  `;
+  wrap.appendChild(menu);
 
-  function optionRow(labelText, options, currentKey, dataAttr){
-    const row = document.createElement('div');
-    row.className = 'field-group';
-    row.style.padding = '14px';
-    row.style.marginTop = '0';
-    const buttons = options.map(o=>
-      `<button class="btn ${currentKey===o.key?'primary':'ghost'}" data-${dataAttr}="${o.key}" style="flex:1;">${o.label}</button>`
-    ).join('');
-    row.innerHTML = `
+  menu.querySelector('#openFontSettings').onclick = openFontSettingsSheet;
+  menu.querySelector('#openDataSettings').onclick = openDataSettingsSheet;
+
+  return wrap;
+}
+
+/* ---- 設定 > フォント設定（ボトムシート） ---- */
+function fontSettingsOptionRowHtml(labelText, options, currentKey, dataAttr){
+  const buttons = options.map(o=>
+    `<button class="btn ${currentKey===o.key?'primary':'ghost'}" data-${dataAttr}="${o.key}" style="flex:1;">${o.label}</button>`
+  ).join('');
+  return `
+    <div class="field-group" style="padding:14px; margin-top:12px;">
       <div style="font-size:calc(11px * var(--fs-scale));color:var(--ink-soft);margin-bottom:8px;">${labelText}</div>
       <div style="display:flex; gap:8px; flex-wrap:wrap;">${buttons}</div>
-    `;
-    return row;
-  }
-
-  const sizeRow = optionRow('文字サイズ', FONT_SIZE_OPTIONS, state.fontSize, 'size');
-  sizeRow.style.marginBottom = '12px';
-  wrap.appendChild(sizeRow);
-
-  const weightRow = optionRow('文字の太さ', FONT_WEIGHT_OPTIONS, state.fontWeight, 'weight');
-  weightRow.style.marginBottom = '12px';
-  wrap.appendChild(weightRow);
-
-  const familyRow = optionRow('字体', FONT_FAMILY_OPTIONS, state.fontFamily, 'family');
-  familyRow.style.marginBottom = '16px';
-  wrap.appendChild(familyRow);
-
-  const preview = document.createElement('div');
-  preview.className = 'field-group';
-  preview.style.padding = '14px';
-  preview.innerHTML = `
-    <div style="font-size:calc(11px * var(--fs-scale));color:var(--ink-soft);margin-bottom:6px;">プレビュー</div>
-    <div class="display" style="font-size:calc(20px * var(--fs-scale));">Fan売上 ¥128,000</div>
-    <div style="font-size:calc(13.5px * var(--fs-scale));margin-top:6px;">リピート率　68.4%</div>
+    </div>`;
+}
+function fontSettingsSheetHtml(){
+  return `
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div class="sheet-title">フォント設定</div>
+      <button class="sheet-close" id="closeSheet">✕</button>
+    </div>
+    <p style="font-size:calc(12.5px * var(--fs-scale));color:var(--ink-soft);line-height:1.7;margin:-4px 0 4px;">8インチタブレットなどの画面でも見やすいように、文字のサイズ・太さ・字体をアプリ全体で変更できます。</p>
+    ${fontSettingsOptionRowHtml('文字サイズ', FONT_SIZE_OPTIONS, state.fontSize, 'size')}
+    ${fontSettingsOptionRowHtml('文字の太さ', FONT_WEIGHT_OPTIONS, state.fontWeight, 'weight')}
+    ${fontSettingsOptionRowHtml('字体', FONT_FAMILY_OPTIONS, state.fontFamily, 'family')}
+    <div class="field-group" style="padding:14px; margin-top:12px;">
+      <div style="font-size:calc(11px * var(--fs-scale));color:var(--ink-soft);margin-bottom:6px;">プレビュー</div>
+      <div class="display" style="font-size:calc(20px * var(--fs-scale));">Fan売上 ¥128,000</div>
+      <div style="font-size:calc(13.5px * var(--fs-scale));margin-top:6px;">リピート率　68.4%</div>
+    </div>
   `;
-  wrap.appendChild(preview);
-
-  sizeRow.querySelectorAll('button[data-size]').forEach(btn=>{
+}
+function bindFontSettingsSheetHandlers(sheet){
+  sheet.querySelector('#closeSheet').onclick = closeSheet;
+  sheet.querySelectorAll('button[data-size]').forEach(btn=>{
     btn.onclick = async ()=>{
       const key = btn.dataset.size;
       if(state.fontSize===key) return;
       state.fontSize = key;
       applyFontSize(key);
       await saveFontSize(key);
-      render();
       if(state.tab==='chart'){
         const main = document.getElementById('main');
         if(main) loadAndDrawCharts(main);
       }
       showToast('文字サイズを「'+FONT_SIZE_OPTIONS.find(o=>o.key===key).label+'」に変更しました');
+      refreshFontSettingsSheet();
     };
   });
-
-  weightRow.querySelectorAll('button[data-weight]').forEach(btn=>{
+  sheet.querySelectorAll('button[data-weight]').forEach(btn=>{
     btn.onclick = async ()=>{
       const key = btn.dataset.weight;
       if(state.fontWeight===key) return;
       state.fontWeight = key;
       applyFontWeight(key);
       await saveFontWeight(key);
-      render();
       if(state.tab==='chart'){
         const main = document.getElementById('main');
         if(main) loadAndDrawCharts(main);
       }
       showToast('文字の太さを「'+FONT_WEIGHT_OPTIONS.find(o=>o.key===key).label+'」に変更しました');
+      refreshFontSettingsSheet();
     };
   });
-
-  familyRow.querySelectorAll('button[data-family]').forEach(btn=>{
+  sheet.querySelectorAll('button[data-family]').forEach(btn=>{
     btn.onclick = async ()=>{
       const key = btn.dataset.family;
       if(state.fontFamily===key) return;
       state.fontFamily = key;
       applyFontFamily(key);
       await saveFontFamily(key);
-      render();
       if(state.tab==='chart'){
         const main = document.getElementById('main');
         if(main) loadAndDrawCharts(main);
       }
       showToast('字体を「'+FONT_FAMILY_OPTIONS.find(o=>o.key===key).label+'」に変更しました');
+      refreshFontSettingsSheet();
     };
   });
+}
+function refreshFontSettingsSheet(){
+  const sheet = document.getElementById('sheet');
+  if(!sheet.classList.contains('open')) return;
+  sheet.innerHTML = fontSettingsSheetHtml();
+  bindFontSettingsSheetHandlers(sheet);
+}
+function openFontSettingsSheet(){
+  const overlay = document.getElementById('overlay');
+  const sheet = document.getElementById('sheet');
+  sheet.innerHTML = fontSettingsSheetHtml();
+  bindFontSettingsSheetHandlers(sheet);
+  overlay.onclick = closeSheet;
+  overlay.classList.add('open');
+  requestAnimationFrame(()=> sheet.classList.add('open'));
+}
 
-  return wrap;
+/* ---- 設定 > 読込・書出（ボトムシート。中身は既存のrenderExport()を再利用） ---- */
+function openDataSettingsSheet(){
+  const overlay = document.getElementById('overlay');
+  const sheet = document.getElementById('sheet');
+  sheet.innerHTML = '';
+  const handle = document.createElement('div');
+  handle.className = 'sheet-handle';
+  sheet.appendChild(handle);
+  const header = document.createElement('div');
+  header.className = 'sheet-header';
+  header.innerHTML = `<div class="sheet-title">読込・書出</div><button class="sheet-close" id="closeSheet">✕</button>`;
+  sheet.appendChild(header);
+  sheet.appendChild(renderExport());
+  sheet.querySelector('#closeSheet').onclick = closeSheet;
+  overlay.onclick = closeSheet;
+  overlay.classList.add('open');
+  requestAnimationFrame(()=> sheet.classList.add('open'));
 }
 
 /* ---- 端末間バックアップ(全年度・完全復元用) ---- */
@@ -1218,6 +1265,7 @@ function handleImportBackup(ev){
       state.yearData = await loadYear(state.year);
       await saveLastYear(state.year); // 次回起動時もこの年度が開くように記録しておく
       showToast(savedCount+'年度分を復元しました');
+      closeSheet(); // 設定 > 読込・書出 のシートを閉じて、復元結果(月次入力)がすぐ見えるようにする
       render();
     }catch(err){
       console.error(err);
@@ -1503,7 +1551,6 @@ function render(){
   if(state.tab==='grid') main.appendChild(renderGrid());
   else if(state.tab==='summary') main.appendChild(renderSummary());
   else if(state.tab==='chart') main.appendChild(renderChart());
-  else if(state.tab==='export') main.appendChild(renderExport());
   else main.appendChild(renderSettings());
 
   document.querySelectorAll('.tab-btn').forEach(b=>{
@@ -1538,7 +1585,7 @@ window.addEventListener('resize', ()=>{
 // PWA: Service Workerの登録（HTTPSまたはlocalhostでのみ有効。file://で開いた場合は失敗するが動作に支障はない）
 if('serviceWorker' in navigator){
   window.addEventListener('load', ()=>{
-    navigator.serviceWorker.register('./service-worker.js').catch((err)=>{
+    navigator.serviceWorker.register('./serviceworker.js').catch((err)=>{
       console.warn('Service Worker登録をスキップしました（file://で開いている場合は想定内です）:', err && err.message);
     });
   });

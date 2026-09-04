@@ -951,9 +951,13 @@ async function loadAndDrawCharts(wrap){
   }
   if(idxTo < idxFrom){ const t=idxFrom; idxFrom=idxTo; idxTo=t; }
 
-  // 必要な年度をすべて読み込む(キャッシュ利用)
+  // 必要な年度をすべて読み込む(キャッシュ利用)。前年度同月の総客数比較のため、1年前の年度もあわせて読み込む。
   const neededYears = new Set();
-  for(let i=idxFrom; i<=idxTo; i++){ neededYears.add(decodePeriodIndex(i).fiscalYear); }
+  for(let i=idxFrom; i<=idxTo; i++){
+    const fy = decodePeriodIndex(i).fiscalYear;
+    neededYears.add(fy);
+    neededYears.add(fy-1);
+  }
   for(const fy of neededYears){
     if(fy===state.year){ yearCache[fy] = state.yearData; }
     else if(!yearCache[fy]){ yearCache[fy] = await loadYear(fy); }
@@ -963,8 +967,9 @@ async function loadAndDrawCharts(wrap){
   for(let i=idxFrom; i<=idxTo; i++){
     const {fiscalYear, month} = decodePeriodIndex(i);
     const rec = (yearCache[fiscalYear] || {})[month] || null;
+    const prevRec = (yearCache[fiscalYear-1] || {})[month] || null; // 前年度・同じ月の記録
     const calYear = calendarYearOf(month, fiscalYear);
-    points.push({ label: calYear+'/'+month, rec });
+    points.push({ label: calYear+'/'+month, rec, prevRec });
   }
 
   const area = wrap.querySelector('#chartsArea');
@@ -980,12 +985,16 @@ async function loadAndDrawCharts(wrap){
     <div class="field-group" style="padding:12px;"><div style="position:relative;height:220px;"><canvas id="chartSales"></canvas></div></div>
     <div class="section-title">Fan客数</div>
     <div class="field-group" style="padding:12px;"><div style="position:relative;height:220px;"><canvas id="chartCustomers"></canvas></div></div>
-    <div class="section-title">リピート率・新規リピート率・失客率</div>
+    <div class="section-title">リピート率・新規リピート率</div>
     <div class="field-group" style="padding:12px;"><div style="position:relative;height:220px;"><canvas id="chartRates"></canvas></div></div>
+    <div class="section-title">失客率・昨年度の総客数</div>
+    <p style="font-size:calc(11.5px * var(--fs-scale));color:var(--ink-soft);margin:-4px 0 10px;">折れ線＝その月の失客率、棒＝ちょうど1年前・同じ月の総客数です。「昨年その月に来ていた客数」に対して「今年その月、どれだけ失客したか」を見比べられます。</p>
+    <div class="field-group" style="padding:12px;"><div style="position:relative;height:220px;"><canvas id="chartLossVsPrevYear"></canvas></div></div>
   `;
 
   const labels = points.map(p=>p.label);
   const pick = (key)=> points.map(p=> p.rec && p.rec[key]!==undefined && p.rec[key]!=='' ? parseFloat(p.rec[key]) : null);
+  const pickPrev = (key)=> points.map(p=> p.prevRec && p.prevRec[key]!==undefined && p.prevRec[key]!=='' ? parseFloat(p.prevRec[key]) : null);
 
   drawLineChart(area.querySelector('#chartSales'), labels, [
     {label:'Fan売上', data:pick('fanSales'), color:getCss('--accent')},
@@ -997,15 +1006,18 @@ async function loadAndDrawCharts(wrap){
   drawLineChart(area.querySelector('#chartRates'), labels, [
     {label:'リピート率', data:pick('repeatRate'), color:getCss('--accent')},
     {label:'新規リピート率', data:pick('newRepeatRate'), color:getCss('--good')},
-    {label:'失客率', data:pick('lossRate'), color:getCss('--warn')},
   ], true);
+  drawLineChart(area.querySelector('#chartLossVsPrevYear'), labels, [
+    {label:'失客率', data:pick('lossRate'), color:getCss('--warn')},
+    {label:'昨年度の総客数', data:pickPrev('totalCustomers'), color:getCss('--gold'), axis:'right', type:'bar'},
+  ], true, {leftMax:85});
 }
 
 function getCss(varName){
   return getComputedStyle(document.documentElement).getPropertyValue(varName).trim() || '#8B3A3A';
 }
 
-function drawLineChart(canvas, labels, series, isPercent){
+function drawLineChart(canvas, labels, series, isPercent, opts){
   if(!canvas) return;
   const fs = fontScaleOf(state.fontSize);
   const fw = 400 + fontWeightDeltaOf(state.fontWeight);
@@ -1037,7 +1049,8 @@ function drawLineChart(canvas, labels, series, isPercent){
     ctx.fillText('データがありません', cssWidth/2, cssHeight/2);
     return;
   }
-  let maxLeft = leftVals.length ? Math.max(...leftVals)*1.2 : 1; if(maxLeft<=0) maxLeft=1;
+  let maxLeft = (opts && opts.leftMax!=null) ? opts.leftMax : (leftVals.length ? Math.max(...leftVals)*1.2 : 1);
+  if(maxLeft<=0) maxLeft=1;
   let maxRight = rightVals.length ? Math.max(...rightVals)*1.2 : 1; if(maxRight<=0) maxRight=1;
 
   const pad = {top:30*fs, right: (hasRight?46:12)*fs, bottom:32*fs, left:46*fs};
@@ -1087,8 +1100,22 @@ function drawLineChart(canvas, labels, series, isPercent){
     }
   });
 
+  // 棒グラフ系列を先に描画(折れ線の背面になるように)
+  const barSeries = series.filter(s=>s.type==='bar');
+  if(barSeries.length){
+    const barW = Math.max(4, (plotW/Math.max(n,1)) * 0.5);
+    barSeries.forEach(s=>{
+      ctx.fillStyle = s.color;
+      s.data.forEach((v,i)=>{
+        if(v===null||v===undefined||isNaN(v)) return;
+        const x=xAt(i), y=yFor(s,v), yBase=yFor(s,0);
+        ctx.fillRect(x-barW/2, Math.min(y,yBase), barW, Math.abs(yBase-y));
+      });
+    });
+  }
+
   // 折れ線 + 点
-  series.forEach(s=>{
+  series.filter(s=>s.type!=='bar').forEach(s=>{
     ctx.strokeStyle = s.color; ctx.lineWidth = 2.2;
     if(s.axis==='right') ctx.setLineDash([5,3]); else ctx.setLineDash([]);
     ctx.beginPath();
